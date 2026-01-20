@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "Health Exporter",
+    "slug": "health-exporter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "health-exporter",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0f"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.healthexporter.app",
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "This app needs access to your health data to export it to your Obsidian vault.",
+        "UIBackgroundModes": ["fetch", "processing"],
+        "BGTaskSchedulerPermittedIdentifiers": ["com.healthexporter.dataexport"]
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.background-delivery": true
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0a0f"
+      },
+      "package": "com.healthexporter.app",
+      "permissions": [
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_EXERCISE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#8B5CF6"
+        }
+      ],
+      [
+        "expo-background-fetch",
+        {
+          "stopOnTerminate": false,
+          "startOnBoot": true
+        }
+      ],
+      "expo-task-manager"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
