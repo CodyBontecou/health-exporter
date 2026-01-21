@@ -23,7 +23,7 @@ struct AnimatedHeader: View {
                 .tracking(1.5)
 
             // Main title
-            Text("Health to Obsidian")
+            Text("Obsidian Health")
                 .font(Typography.displayLarge())
                 .foregroundStyle(Color.textPrimary)
 

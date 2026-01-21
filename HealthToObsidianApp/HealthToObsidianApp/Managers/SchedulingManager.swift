@@ -8,10 +8,10 @@ import os.log
 class SchedulingManager: ObservableObject {
     @MainActor static let shared = SchedulingManager()
 
-    private let logger = Logger(subsystem: "com.healthexporter", category: "SchedulingManager")
+    private let logger = Logger(subsystem: "com.codybontecou.obsidianhealth", category: "SchedulingManager")
 
     /// Background task identifier - must match Info.plist entry
-    static let backgroundTaskIdentifier = "com.healthexporter.dataexport"
+    static let backgroundTaskIdentifier = "com.codybontecou.obsidianhealth.dataexport"
 
     @MainActor @Published var schedule: ExportSchedule {
         didSet {
@@ -62,7 +62,7 @@ class SchedulingManager: ObservableObject {
     }
 
     /// Schedules the next background task based on current schedule settings
-    func scheduleBackgroundTask() {
+    @MainActor func scheduleBackgroundTask() {
         // Cancel any existing tasks
         cancelBackgroundTask()
 
@@ -86,7 +86,7 @@ class SchedulingManager: ObservableObject {
     }
 
     /// Cancels all pending background tasks
-    func cancelBackgroundTask() {
+    @MainActor func cancelBackgroundTask() {
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: Self.backgroundTaskIdentifier)
         logger.info("Background task cancelled")
     }
@@ -297,7 +297,7 @@ class SchedulingManager: ObservableObject {
 
         // Create the request with a unique identifier
         let request = UNNotificationRequest(
-            identifier: "com.healthexporter.export.\(UUID().uuidString)",
+            identifier: "com.codybontecou.obsidianhealth.export.\(UUID().uuidString)",
             content: content,
             trigger: nil // nil trigger means deliver immediately
         )

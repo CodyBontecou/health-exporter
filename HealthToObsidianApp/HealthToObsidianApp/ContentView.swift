@@ -7,7 +7,7 @@ struct ContentView: View {
     @ObservedObject private var exportHistory = ExportHistoryManager.shared
     @EnvironmentObject var schedulingManager: SchedulingManager
 
-    @State private var startDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+    @State private var startDate = Date()
     @State private var endDate = Date()
     @State private var showFolderPicker = false
     @State private var showExportModal = false
@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var exportStatusMessage = ""
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var statusDismissTimer: Timer?
 
     var body: some View {
         ZStack {
@@ -156,20 +157,27 @@ struct ContentView: View {
                         }
                         .padding(.horizontal, Spacing.lg)
                     }
-
-                    // Export status feedback
-                    if let status = vaultManager.lastExportStatus {
-                        ExportStatusBadge(
-                            status: status.starts(with: "Exported")
-                                ? .success(status)
-                                : .error(status)
-                        )
-                    }
                 }
                 .padding(.horizontal, Spacing.lg)
 
                 Spacer()
                 Spacer()
+            }
+
+            // Toast notification at bottom
+            VStack {
+                Spacer()
+
+                if let status = vaultManager.lastExportStatus {
+                    ExportStatusBadge(
+                        status: status.starts(with: "Exported")
+                            ? .success(status)
+                            : .error(status),
+                        onDismiss: dismissStatus
+                    )
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.bottom, Spacing.xl)
+                }
             }
         }
         .preferredColorScheme(.dark)
@@ -214,6 +222,10 @@ struct ContentView: View {
                 }
             }
         }
+        .onDisappear {
+            // Clean up timer when view disappears
+            statusDismissTimer?.invalidate()
+        }
     }
 
     // MARK: - Computed Properties
@@ -241,10 +253,28 @@ struct ContentView: View {
 
     // MARK: - Export
 
+    private func startStatusDismissTimer() {
+        // Cancel any existing timer
+        statusDismissTimer?.invalidate()
+
+        // Start a new timer to clear the status after 5 seconds
+        statusDismissTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
+            dismissStatus()
+        }
+    }
+
+    private func dismissStatus() {
+        vaultManager.lastExportStatus = nil
+        statusDismissTimer?.invalidate()
+    }
+
     private func exportData() {
         isExporting = true
         exportProgress = 0.0
         exportStatusMessage = ""
+
+        // Cancel any pending dismiss timer when starting a new export
+        statusDismissTimer?.invalidate()
 
         Task {
             defer {
@@ -314,6 +344,9 @@ struct ContentView: View {
                     successCount: successCount,
                     totalCount: totalDays
                 )
+
+                // Auto-dismiss the status after 5 seconds
+                startStatusDismissTimer()
             } else if successCount > 0 {
                 // Partial success
                 let failedDatesStr = failedDateDetails.map { $0.dateString }.joined(separator: ", ")
@@ -328,6 +361,9 @@ struct ContentView: View {
                     totalCount: totalDays,
                     failedDateDetails: failedDateDetails
                 )
+
+                // Auto-dismiss the status after 5 seconds
+                startStatusDismissTimer()
             } else {
                 // Complete failure
                 let primaryReason = failedDateDetails.first?.reason ?? .unknown

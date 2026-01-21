@@ -78,7 +78,7 @@ struct VaultIcon: View {
 }
 
 // MARK: - Export Status Badge
-// Minimal status message - simple fade in
+// Toast-style notification that slides up from bottom
 
 struct ExportStatusBadge: View {
     enum StatusType {
@@ -87,7 +87,9 @@ struct ExportStatusBadge: View {
     }
 
     let status: StatusType
+    let onDismiss: () -> Void
     @State private var isVisible = false
+    @State private var offset: CGFloat = 100
 
     var body: some View {
         HStack(spacing: Spacing.sm) {
@@ -113,16 +115,34 @@ struct ExportStatusBadge: View {
         .padding(.vertical, Spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.bgTertiary)
-        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(borderColor, lineWidth: 1)
         )
+        .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 4)
         .opacity(isVisible ? 1 : 0)
+        .offset(y: offset)
         .onAppear {
-            withAnimation(AnimationTimings.smooth) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                 isVisible = true
+                offset = 0
             }
+        }
+        .onTapGesture {
+            dismiss()
+        }
+    }
+
+    private func dismiss() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            isVisible = false
+            offset = 100
+        }
+
+        // Call onDismiss after animation completes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            onDismiss()
         }
     }
 
