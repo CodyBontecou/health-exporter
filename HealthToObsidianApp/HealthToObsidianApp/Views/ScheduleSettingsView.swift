@@ -142,6 +142,36 @@ struct ScheduleSettingsView: View {
 
                 }
 
+                // Device Lock Information
+                if isEnabled {
+                    Section {
+                        HStack(alignment: .top, spacing: Spacing.sm) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 14))
+                                .foregroundStyle(Color.orange)
+                                .frame(width: 20)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Device Must Be Unlocked")
+                                    .font(Typography.body())
+                                    .foregroundStyle(Color.textPrimary)
+                                    .fontWeight(.medium)
+
+                                Text("Health data is protected by iOS and cannot be accessed while your device is locked. Background exports will only succeed when your device is unlocked.")
+                                    .font(Typography.caption())
+                                    .foregroundStyle(Color.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+
+                                Text("If an export fails due to device lock, it will be retried automatically when you unlock your device and open the app.")
+                                    .font(Typography.caption())
+                                    .foregroundStyle(Color.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+
                 // Export History section (always visible)
                 Section {
                     if exportHistory.history.isEmpty {

@@ -19,6 +19,25 @@ final class HealthKitManager: ObservableObject {
     @Published var isAuthorized = false
     @Published var authorizationStatus: String = "Not Connected"
 
+    // MARK: - Error Types
+
+    enum HealthKitError: LocalizedError {
+        case dataNotAvailable
+        case notAuthorized
+        case dataProtectedWhileLocked
+
+        var errorDescription: String? {
+            switch self {
+            case .dataNotAvailable:
+                return "Health data is not available on this device"
+            case .notAuthorized:
+                return "Health data access not authorized. Please grant permissions in Settings."
+            case .dataProtectedWhileLocked:
+                return "Health data is unavailable while the device is locked. Please unlock your device."
+            }
+        }
+    }
+
     // MARK: - Health Data Types
 
     private var allReadTypes: Set<HKObjectType> {
@@ -89,6 +108,36 @@ final class HealthKitManager: ObservableObject {
         try await healthStore.requestAuthorization(toShare: [], read: allReadTypes)
         isAuthorized = true
         authorizationStatus = "Connected"
+    }
+
+    /// Checks if HealthKit data can be accessed in the current context (background or foreground)
+    /// Returns true if authorized and data is accessible, throws appropriate error otherwise
+    private func checkAuthorizationForBackgroundAccess() throws {
+        guard isHealthDataAvailable else {
+            throw HealthKitError.dataNotAvailable
+        }
+
+        // Check authorization status for a sample type (steps) as a proxy for overall access
+        guard let stepsType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
+            throw HealthKitError.dataNotAvailable
+        }
+
+        let authStatus = healthStore.authorizationStatus(for: stepsType)
+
+        switch authStatus {
+        case .notDetermined:
+            throw HealthKitError.notAuthorized
+        case .sharingDenied:
+            // User explicitly denied - this is a permissions issue
+            throw HealthKitError.notAuthorized
+        case .sharingAuthorized:
+            // Authorized - but data might still be protected if device is locked
+            // We can't directly check lock state, so we'll let the query attempt proceed
+            // and catch the error if it fails
+            break
+        @unknown default:
+            throw HealthKitError.notAuthorized
+        }
     }
 
     // MARK: - Background Delivery
@@ -189,20 +238,37 @@ final class HealthKitManager: ObservableObject {
     func fetchHealthData(for date: Date) async throws -> HealthData {
         var healthData = HealthData(date: date)
 
-        // Fetch all data concurrently
-        async let sleepData = fetchSleepData(for: date)
-        async let activityData = fetchActivityData(for: date)
-        async let vitalsData = fetchVitalsData(for: date)
-        async let bodyData = fetchBodyData(for: date)
-        async let workoutsData = fetchWorkouts(for: date)
+        // Check authorization before attempting to query
+        // This is especially important in background contexts
+        try checkAuthorizationForBackgroundAccess()
 
-        healthData.sleep = try await sleepData
-        healthData.activity = try await activityData
-        healthData.vitals = try await vitalsData
-        healthData.body = try await bodyData
-        healthData.workouts = try await workoutsData
+        do {
+            // Fetch all data concurrently
+            async let sleepData = fetchSleepData(for: date)
+            async let activityData = fetchActivityData(for: date)
+            async let vitalsData = fetchVitalsData(for: date)
+            async let bodyData = fetchBodyData(for: date)
+            async let workoutsData = fetchWorkouts(for: date)
 
-        return healthData
+            healthData.sleep = try await sleepData
+            healthData.activity = try await activityData
+            healthData.vitals = try await vitalsData
+            healthData.body = try await bodyData
+            healthData.workouts = try await workoutsData
+
+            return healthData
+        } catch {
+            // If we get an error that suggests data protection (device locked),
+            // throw a more specific error
+            let errorMessage = error.localizedDescription.lowercased()
+            if errorMessage.contains("protected") ||
+               errorMessage.contains("authorization") ||
+               errorMessage.contains("not authorized") {
+                logger.error("HealthKit query failed (likely device locked): \(error.localizedDescription)")
+                throw HealthKitError.dataProtectedWhileLocked
+            }
+            throw error
+        }
     }
 
     // MARK: - Sleep Data

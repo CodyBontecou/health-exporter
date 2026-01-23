@@ -81,6 +81,7 @@ enum ExportFailureReason: String, Codable {
     case accessDenied = "access_denied"
     case noHealthData = "no_health_data"
     case healthKitError = "healthkit_error"
+    case deviceLocked = "device_locked"
     case fileWriteError = "file_write_error"
     case backgroundTaskExpired = "task_expired"
     case unknown = "unknown"
@@ -95,6 +96,8 @@ enum ExportFailureReason: String, Codable {
             return "No health data"
         case .healthKitError:
             return "HealthKit error"
+        case .deviceLocked:
+            return "Device locked"
         case .fileWriteError:
             return "File write failed"
         case .backgroundTaskExpired:
@@ -113,7 +116,9 @@ enum ExportFailureReason: String, Codable {
         case .noHealthData:
             return "No health data was available for the selected date range."
         case .healthKitError:
-            return "Failed to fetch data from HealthKit. Check that health permissions are granted."
+            return "Failed to fetch data from HealthKit. Check that health permissions are granted in the Health app."
+        case .deviceLocked:
+            return "Health data is protected while your device is locked. The export will retry automatically when your device is unlocked."
         case .fileWriteError:
             return "Failed to write the export file to the vault folder."
         case .backgroundTaskExpired:

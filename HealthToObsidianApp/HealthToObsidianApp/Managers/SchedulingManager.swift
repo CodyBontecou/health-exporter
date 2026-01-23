@@ -282,6 +282,16 @@ class SchedulingManager: ObservableObject {
                 } else {
                     failedDateDetails.append(FailedDateDetail(date: date, reason: .fileWriteError))
                 }
+            } catch let error as HealthKitManager.HealthKitError {
+                // Map HealthKit-specific errors to appropriate failure reasons
+                switch error {
+                case .dataProtectedWhileLocked:
+                    failedDateDetails.append(FailedDateDetail(date: date, reason: .deviceLocked))
+                case .notAuthorized:
+                    failedDateDetails.append(FailedDateDetail(date: date, reason: .healthKitError))
+                case .dataNotAvailable:
+                    failedDateDetails.append(FailedDateDetail(date: date, reason: .healthKitError))
+                }
             } catch {
                 failedDateDetails.append(FailedDateDetail(date: date, reason: .healthKitError))
             }
@@ -462,6 +472,19 @@ class SchedulingManager: ObservableObject {
                 } else {
                     logger.info("Successfully exported data for \(date)")
                     successCount += 1
+                }
+            } catch let error as HealthKitManager.HealthKitError {
+                // Map HealthKit-specific errors to appropriate failure reasons
+                switch error {
+                case .dataProtectedWhileLocked:
+                    logger.warning("Device locked, cannot access HealthKit data for \(date)")
+                    failedDateDetails.append(FailedDateDetail(date: date, reason: .deviceLocked))
+                case .notAuthorized:
+                    logger.error("Not authorized to access HealthKit data for \(date)")
+                    failedDateDetails.append(FailedDateDetail(date: date, reason: .healthKitError))
+                case .dataNotAvailable:
+                    logger.error("HealthKit data not available for \(date)")
+                    failedDateDetails.append(FailedDateDetail(date: date, reason: .healthKitError))
                 }
             } catch {
                 logger.error("Error fetching health data for \(date): \(error.localizedDescription)")
