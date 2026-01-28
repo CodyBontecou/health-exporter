@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - Primary Action Button
-// Liquid Glass style with frosted background and soft glow
+// Subtle semi-transparent accent with comfortable contrast
 
 struct PrimaryButton: View {
     let title: String
@@ -49,27 +49,14 @@ struct PrimaryButton: View {
             .frame(maxWidth: .infinity)
             .frame(height: 52)
             .background(
-                ZStack {
-                    // Base color
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(isPressed ? Color.accentHover : Color.accent)
-                    // Subtle glass highlight
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.white.opacity(0.1), Color.clear],
-                                startPoint: .top,
-                                endPoint: .center
-                            )
-                        )
-                }
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(isPressed ? Color.accent.opacity(0.6) : Color.accent.opacity(0.75))
             )
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
             )
-            .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
             .opacity(isDisabled ? 0.5 : 1)
             .scaleEffect(isPressed ? 0.98 : 1.0)
         }
