@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - Connection Status Pill
-// Minimal status indicator - no animations
+// Liquid Glass status indicator with soft glow
 
 struct StatusPill: View {
     enum Status {
@@ -32,15 +32,19 @@ struct StatusPill: View {
         HStack(spacing: Spacing.xs) {
             Circle()
                 .fill(status.color)
-                .frame(width: 6, height: 6)
+                .frame(width: 8, height: 8)
+                .shadow(color: status.color.opacity(0.6), radius: 4, x: 0, y: 0)
 
             Text(status.label)
-                .font(Typography.label())
+                .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(status.color)
         }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xs)
-        .background(Color.bgTertiary)
+        .padding(.horizontal, Spacing.sm + 2)
+        .padding(.vertical, Spacing.xs + 2)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+        )
         .clipShape(Capsule())
         .overlay(
             Capsule()
@@ -50,35 +54,77 @@ struct StatusPill: View {
 }
 
 // MARK: - Health Icon
-// Minimal icon - no pulse, no glow
+// Liquid Glass icon with soft glow when connected
 
 struct PulsingHeartIcon: View {
     let isConnected: Bool
 
     var body: some View {
-        Image(systemName: "heart.fill")
-            .font(.system(size: 24, weight: .medium))
-            .foregroundStyle(isConnected ? Color.accent : Color.textMuted)
-            .frame(width: 44, height: 44)
+        ZStack {
+            // Glow layer when connected
+            if isConnected {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(Color.accent)
+                    .blur(radius: 8)
+                    .opacity(0.6)
+            }
+
+            // Main icon
+            Image(systemName: "heart.fill")
+                .font(.system(size: 24, weight: .medium))
+                .foregroundStyle(isConnected ? Color.accent : Color.textMuted)
+        }
+        .frame(width: 48, height: 48)
+        .background(
+            Circle()
+                .fill(.ultraThinMaterial)
+        )
+        .clipShape(Circle())
+        .overlay(
+            Circle()
+                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
 // MARK: - Vault Icon
-// Minimal icon - no rotation, no glow
+// Liquid Glass icon with soft glow when selected
 
 struct VaultIcon: View {
     let isSelected: Bool
 
     var body: some View {
-        Image(systemName: "folder.fill")
-            .font(.system(size: 24, weight: .medium))
-            .foregroundStyle(isSelected ? Color.accent : Color.textMuted)
-            .frame(width: 44, height: 44)
+        ZStack {
+            // Glow layer when selected
+            if isSelected {
+                Image(systemName: "folder.fill")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(Color.accent)
+                    .blur(radius: 8)
+                    .opacity(0.6)
+            }
+
+            // Main icon
+            Image(systemName: "folder.fill")
+                .font(.system(size: 24, weight: .medium))
+                .foregroundStyle(isSelected ? Color.accent : Color.textMuted)
+        }
+        .frame(width: 48, height: 48)
+        .background(
+            Circle()
+                .fill(.ultraThinMaterial)
+        )
+        .clipShape(Circle())
+        .overlay(
+            Circle()
+                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
 // MARK: - Export Status Badge
-// Toast-style notification that slides up from bottom
+// Liquid Glass toast notification that slides up from bottom
 
 struct ExportStatusBadge: View {
     enum StatusType {
@@ -93,34 +139,56 @@ struct ExportStatusBadge: View {
 
     var body: some View {
         HStack(spacing: Spacing.sm) {
-            Group {
-                switch status {
-                case .success:
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.success)
-                case .error:
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(Color.error)
+            // Icon with glow
+            ZStack {
+                Group {
+                    switch status {
+                    case .success:
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(Color.success)
+                            .blur(radius: 6)
+                            .opacity(0.6)
+                    case .error:
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundStyle(Color.error)
+                            .blur(radius: 6)
+                            .opacity(0.6)
+                    }
+                }
+
+                Group {
+                    switch status {
+                    case .success:
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(Color.success)
+                    case .error:
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .foregroundStyle(Color.error)
+                    }
                 }
             }
-            .font(.system(size: 14, weight: .medium))
+            .font(.system(size: 18, weight: .medium))
 
             Text(message)
-                .font(Typography.body())
-                .foregroundStyle(messageColor)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color.textPrimary)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
         }
-        .padding(.horizontal, Spacing.md)
-        .padding(.vertical, Spacing.sm)
+        .padding(.horizontal, Spacing.md + 4)
+        .padding(.vertical, Spacing.sm + 4)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.bgTertiary)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(borderColor, lineWidth: 1)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
         )
-        .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(borderColor.opacity(0.5), lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.2), radius: 16, x: 0, y: 8)
+        .shadow(color: borderColor.opacity(0.3), radius: 8, x: 0, y: 2)
         .opacity(isVisible ? 1 : 0)
         .offset(y: offset)
         .onAppear {

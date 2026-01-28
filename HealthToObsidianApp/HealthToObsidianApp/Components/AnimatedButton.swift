@@ -1,12 +1,12 @@
 import SwiftUI
 
 // MARK: - Primary Action Button
-// Minimal design - flat accent color, no gradients or glows
+// Liquid Glass style with frosted background and soft glow
 
 struct PrimaryButton: View {
     let title: String
     let icon: String
-    let gradient: LinearGradient?  // Kept for compatibility, but not used
+    let gradient: LinearGradient?  // Kept for compatibility
     let isLoading: Bool
     let isDisabled: Bool
     let action: () -> Void
@@ -38,25 +38,45 @@ struct PrimaryButton: View {
                         .scaleEffect(0.85)
                 } else {
                     Image(systemName: icon)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.system(size: 16, weight: .semibold))
                 }
 
                 Text(isLoading ? "Exporting..." : title)
-                    .font(.system(size: 15, weight: .medium))
-                    .tracking(0.2)
+                    .font(.system(size: 16, weight: .semibold))
+                    .tracking(0.3)
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
-            .frame(height: 44)
-            .background(isPressed ? Color.accentHover : Color.accent)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .opacity(isDisabled ? 0.4 : 1)
-            .scaleEffect(isPressed ? 0.99 : 1.0)
+            .frame(height: 52)
+            .background(
+                ZStack {
+                    // Base color
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(isPressed ? Color.accentHover : Color.accent)
+                    // Glass overlay
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.2), Color.clear],
+                                startPoint: .top,
+                                endPoint: .center
+                            )
+                        )
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
+            )
+            .shadow(color: Color.accent.opacity(isDisabled ? 0 : 0.4), radius: 12, x: 0, y: 6)
+            .opacity(isDisabled ? 0.5 : 1)
+            .scaleEffect(isPressed ? 0.98 : 1.0)
         }
         .buttonStyle(.plain)
         .disabled(isDisabled || isLoading)
         .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
-            withAnimation(.easeInOut(duration: 0.15)) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 isPressed = pressing
             }
         }, perform: {})
@@ -64,7 +84,7 @@ struct PrimaryButton: View {
 }
 
 // MARK: - Secondary Button
-// Ghost button style - border only
+// Liquid Glass ghost button with frosted material
 
 struct SecondaryButton: View {
     let title: String
@@ -94,21 +114,26 @@ struct SecondaryButton: View {
                         .font(.system(size: 13, weight: .medium))
                 }
                 Text(title)
-                    .font(Typography.body())
+                    .font(.system(size: 15, weight: .medium))
             }
             .foregroundStyle(color)
             .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.sm)
-            .background(isPressed ? Color.bgTertiary : Color.bgSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .strokeBorder(Color.borderDefault, lineWidth: 1)
+            .padding(.vertical, Spacing.sm + 2)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .opacity(isPressed ? 1 : 0.8)
             )
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+            )
+            .scaleEffect(isPressed ? 0.97 : 1.0)
         }
         .buttonStyle(.plain)
         .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
-            withAnimation(AnimationTimings.fast) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 isPressed = pressing
             }
         }, perform: {})
@@ -116,7 +141,7 @@ struct SecondaryButton: View {
 }
 
 // MARK: - Icon Button
-// Minimal icon-only button
+// Liquid Glass circular icon button
 
 struct IconButton: View {
     let icon: String
@@ -129,7 +154,7 @@ struct IconButton: View {
     init(
         icon: String,
         color: Color = .textPrimary,
-        size: CGFloat = 36,
+        size: CGFloat = 40,
         action: @escaping () -> Void
     ) {
         self.icon = icon
@@ -141,19 +166,23 @@ struct IconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(color)
                 .frame(width: size, height: size)
-                .background(isPressed ? Color.bgTertiary : Color.bgSecondary)
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .strokeBorder(Color.borderDefault, lineWidth: 1)
+                .background(
+                    Circle()
+                        .fill(.ultraThinMaterial)
                 )
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+                )
+                .scaleEffect(isPressed ? 0.95 : 1.0)
         }
         .buttonStyle(.plain)
         .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
-            withAnimation(AnimationTimings.fast) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 isPressed = pressing
             }
         }, perform: {})
@@ -161,7 +190,7 @@ struct IconButton: View {
 }
 
 // MARK: - Destructive Button
-// Minimal destructive action button
+// Liquid Glass destructive action button
 
 struct DestructiveButton: View {
     let title: String
@@ -172,20 +201,25 @@ struct DestructiveButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(Typography.body())
+                .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(Color.error)
                 .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .background(isPressed ? Color.error.opacity(0.1) : Color.bgSecondary)
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .strokeBorder(Color.error, lineWidth: 1)
+                .padding(.vertical, Spacing.sm + 2)
+                .background(
+                    Capsule()
+                        .fill(.ultraThinMaterial)
+                        .opacity(isPressed ? 1 : 0.8)
                 )
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .strokeBorder(Color.error.opacity(0.5), lineWidth: 1)
+                )
+                .scaleEffect(isPressed ? 0.97 : 1.0)
         }
         .buttonStyle(.plain)
         .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
-            withAnimation(AnimationTimings.fast) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 isPressed = pressing
             }
         }, perform: {})

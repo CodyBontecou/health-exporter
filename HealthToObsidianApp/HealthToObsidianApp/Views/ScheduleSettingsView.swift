@@ -45,7 +45,7 @@ struct ScheduleSettingsView: View {
                             Text("Next export: \(nextExport)")
                         }
 
-                        Text("Note: iOS controls when background tasks run based on device usage patterns, battery level, and system conditions. The scheduled time is a suggestion, not a guarantee.")
+                        Text("Note: Your iPhone must be unlocked for exports to work—iOS protects health data when locked. If locked, we'll send a notification at the scheduled time; tap it to run the export. The scheduled time is approximate; iOS controls when background tasks run based on usage patterns and system conditions.")
                     }
                     .font(Typography.caption())
                     .foregroundStyle(Color.textSecondary)
@@ -60,12 +60,12 @@ struct ScheduleSettingsView: View {
                         }
                         .tint(Color.accent)
 
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("Time")
                                 .foregroundStyle(Color.textPrimary)
 
-                            HStack(spacing: Spacing.xs) {
-                                // Hour
+                            HStack(spacing: Spacing.sm) {
+                                // Hour with Liquid Glass
                                 Menu {
                                     ForEach(0..<24, id: \.self) { hour in
                                         Button(String(format: "%02d", hour)) {
@@ -73,30 +73,31 @@ struct ScheduleSettingsView: View {
                                         }
                                     }
                                 } label: {
-                                    HStack {
+                                    HStack(spacing: Spacing.xs) {
                                         Text(String(format: "%02d", preferredHour))
-                                            .font(Typography.bodyMono())
+                                            .font(.system(size: 17, weight: .medium, design: .monospaced))
                                             .foregroundStyle(Color.textPrimary)
                                         Image(systemName: "chevron.up.chevron.down")
-                                            .font(.system(size: 10, weight: .medium))
-                                            .foregroundStyle(Color.textMuted)
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundStyle(Color.accent)
                                     }
-                                    .padding(.horizontal, Spacing.sm)
-                                    .padding(.vertical, Spacing.xs)
+                                    .padding(.horizontal, Spacing.md)
+                                    .padding(.vertical, Spacing.sm)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                            .fill(Color.bgSecondary)
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(.ultraThinMaterial)
                                     )
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                            .strokeBorder(Color.borderDefault, lineWidth: 1)
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
                                     )
                                 }
 
                                 Text(":")
+                                    .font(.system(size: 20, weight: .medium))
                                     .foregroundStyle(Color.textSecondary)
 
-                                // Minute
+                                // Minute with Liquid Glass
                                 Menu {
                                     ForEach(Array(stride(from: 0, to: 60, by: 5)), id: \.self) { minute in
                                         Button(String(format: "%02d", minute)) {
@@ -104,23 +105,23 @@ struct ScheduleSettingsView: View {
                                         }
                                     }
                                 } label: {
-                                    HStack {
+                                    HStack(spacing: Spacing.xs) {
                                         Text(String(format: "%02d", preferredMinute))
-                                            .font(Typography.bodyMono())
+                                            .font(.system(size: 17, weight: .medium, design: .monospaced))
                                             .foregroundStyle(Color.textPrimary)
                                         Image(systemName: "chevron.up.chevron.down")
-                                            .font(.system(size: 10, weight: .medium))
-                                            .foregroundStyle(Color.textMuted)
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundStyle(Color.accent)
                                     }
-                                    .padding(.horizontal, Spacing.sm)
-                                    .padding(.vertical, Spacing.xs)
+                                    .padding(.horizontal, Spacing.md)
+                                    .padding(.vertical, Spacing.sm)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                            .fill(Color.bgSecondary)
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(.ultraThinMaterial)
                                     )
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                            .strokeBorder(Color.borderDefault, lineWidth: 1)
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
                                     )
                                 }
 
@@ -140,36 +141,6 @@ struct ScheduleSettingsView: View {
                         .foregroundStyle(Color.textSecondary)
                     }
 
-                }
-
-                // Device Lock Information
-                if isEnabled {
-                    Section {
-                        HStack(alignment: .top, spacing: Spacing.sm) {
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 14))
-                                .foregroundStyle(Color.orange)
-                                .frame(width: 20)
-
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Device Must Be Unlocked")
-                                    .font(Typography.body())
-                                    .foregroundStyle(Color.textPrimary)
-                                    .fontWeight(.medium)
-
-                                Text("Health data is protected by iOS and cannot be accessed while your device is locked. Background exports will only succeed when your device is unlocked.")
-                                    .font(Typography.caption())
-                                    .foregroundStyle(Color.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-
-                                Text("If an export fails due to device lock, it will be retried automatically when you unlock your device and open the app.")
-                                    .font(Typography.caption())
-                                    .foregroundStyle(Color.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
                 }
 
                 // Export History section (always visible)
@@ -430,17 +401,34 @@ struct RetryProgressOverlay: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.6)
+            // Frosted background
+            Color.black.opacity(0.4)
                 .ignoresSafeArea()
+                .background(.ultraThinMaterial)
 
-            VStack(spacing: Spacing.md) {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(Color.accent)
+            VStack(spacing: Spacing.lg) {
+                // Animated progress indicator
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.1), lineWidth: 4)
+                        .frame(width: 60, height: 60)
+
+                    Circle()
+                        .trim(from: 0, to: progress)
+                        .stroke(Color.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                        .frame(width: 60, height: 60)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.spring(response: 0.3), value: progress)
+
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(Color.accent)
+                }
 
                 Text(message)
-                    .font(Typography.body())
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Color.textPrimary)
+                    .multilineTextAlignment(.center)
 
                 ProgressView(value: progress)
                     .tint(Color.accent)
@@ -448,9 +436,14 @@ struct RetryProgressOverlay: View {
             }
             .padding(Spacing.xl)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.bgSecondary)
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(.ultraThinMaterial)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
         }
     }
 }

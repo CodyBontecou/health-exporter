@@ -83,103 +83,126 @@ struct Spacing {
 // Clean geometric sans-serif + monospace for technical precision
 
 struct Typography {
+    // Hero - extra large for main screen titles
+    static func hero() -> Font {
+        .system(size: 48, weight: .bold, design: .default)
+    }
+
     // Display - clean geometric sans-serif (no rounded)
     static func displayLarge() -> Font {
-        .system(size: 32, weight: .semibold, design: .default)
+        .system(size: 36, weight: .bold, design: .default)
     }
 
     static func displayMedium() -> Font {
-        .system(size: 24, weight: .medium, design: .default)
+        .system(size: 28, weight: .semibold, design: .default)
     }
 
     // Headlines - clean and direct
     static func headline() -> Font {
-        .system(size: 17, weight: .medium, design: .default)
+        .system(size: 20, weight: .semibold, design: .default)
     }
 
     static func headlineEmphasis() -> Font {
-        .system(size: 17, weight: .semibold, design: .default)
+        .system(size: 20, weight: .bold, design: .default)
     }
 
-    // Body text - highly readable
+    // Body text - highly readable (enlarged)
     static func body() -> Font {
-        .system(size: 15, weight: .regular, design: .default)
+        .system(size: 17, weight: .regular, design: .default)
     }
 
     static func bodyEmphasis() -> Font {
-        .system(size: 15, weight: .medium, design: .default)
+        .system(size: 17, weight: .medium, design: .default)
+    }
+
+    static func bodyLarge() -> Font {
+        .system(size: 19, weight: .regular, design: .default)
     }
 
     // Monospace - for technical info (paths, values)
     static func mono() -> Font {
-        .system(size: 13, weight: .regular, design: .monospaced)
+        .system(size: 14, weight: .regular, design: .monospaced)
     }
 
     static func monoEmphasis() -> Font {
-        .system(size: 13, weight: .medium, design: .monospaced)
+        .system(size: 14, weight: .medium, design: .monospaced)
     }
 
     // Keep old bodyMono for compatibility
     static func bodyMono() -> Font {
-        .system(size: 13, weight: .regular, design: .monospaced)
+        .system(size: 14, weight: .regular, design: .monospaced)
     }
 
     // Small text - captions and labels
     static func caption() -> Font {
-        .system(size: 12, weight: .regular, design: .default)
+        .system(size: 14, weight: .regular, design: .default)
     }
 
     static func label() -> Font {
-        .system(size: 11, weight: .medium, design: .default)
+        .system(size: 13, weight: .medium, design: .default)
     }
 
     // Uppercase labels - strategic use
     static func labelUppercase() -> Font {
-        .system(size: 10, weight: .semibold, design: .default)
+        .system(size: 12, weight: .semibold, design: .default)
     }
 }
 
-// MARK: - Minimal Card Modifier
-// Simple borders, no glass effects or gradients
+// MARK: - Liquid Glass Card Modifier
+// Apple's Liquid Glass design: frosted glass with soft borders and depth
 
-struct MinimalCard: ViewModifier {
-    var cornerRadius: CGFloat = 8   // Reduced corner radius for sharper look
+struct LiquidGlassCard: ViewModifier {
+    var cornerRadius: CGFloat = 20
     var padding: CGFloat = Spacing.lg
 
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(Color.bgTertiary)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(.ultraThinMaterial)
+            )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(Color.borderDefault, lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
             )
+            .shadow(color: Color.black.opacity(0.15), radius: 12, x: 0, y: 6)
     }
 }
 
 extension View {
-    func minimalCard(cornerRadius: CGFloat = 8, padding: CGFloat = Spacing.lg) -> some View {
-        modifier(MinimalCard(cornerRadius: cornerRadius, padding: padding))
+    func liquidGlassCard(cornerRadius: CGFloat = 20, padding: CGFloat = Spacing.lg) -> some View {
+        modifier(LiquidGlassCard(cornerRadius: cornerRadius, padding: padding))
     }
 
-    // Keep old name for compatibility
-    func glassCard(cornerRadius: CGFloat = 8, padding: CGFloat = Spacing.lg) -> some View {
-        modifier(MinimalCard(cornerRadius: cornerRadius, padding: padding))
+    // Aliases for compatibility
+    func minimalCard(cornerRadius: CGFloat = 20, padding: CGFloat = Spacing.lg) -> some View {
+        modifier(LiquidGlassCard(cornerRadius: cornerRadius, padding: padding))
+    }
+
+    func glassCard(cornerRadius: CGFloat = 20, padding: CGFloat = Spacing.lg) -> some View {
+        modifier(LiquidGlassCard(cornerRadius: cornerRadius, padding: padding))
     }
 }
 
-// MARK: - Subtle Shadow (No Glows)
-// Minimal depth with single subtle shadow
+// MARK: - Liquid Glass Shadows
+// Soft, layered shadows for depth in the Liquid Glass design
 
 extension View {
     func subtleShadow() -> some View {
-        self.shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+        self.shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
     }
 
-    // Deprecated - minimal aesthetic doesn't use glows
-    func glow(_ color: Color, radius: CGFloat = 10) -> some View {
-        self // Return self without glow
+    func liquidGlassShadow() -> some View {
+        self
+            .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.12), radius: 16, x: 0, y: 8)
+    }
+
+    // Soft glow for interactive elements
+    func softGlow(_ color: Color, radius: CGFloat = 12) -> some View {
+        self.shadow(color: color.opacity(0.4), radius: radius, x: 0, y: 4)
     }
 }
 

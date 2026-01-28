@@ -72,19 +72,26 @@ struct AdvancedSettingsView: View {
                         .foregroundColor(Color.textMuted)
                 }
 
-                // Preview Section
+                // Preview Section with Liquid Glass styling
                 Section {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("Export Preview")
-                            .font(Typography.label())
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(Color.textSecondary)
 
                         Text(previewText)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(Color.textMuted)
+                            .font(.system(size: 13, weight: .regular, design: .monospaced))
+                            .foregroundColor(Color.textPrimary)
                             .padding(Spacing.md)
-                            .background(Color.bgSecondary)
-                            .cornerRadius(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(.ultraThinMaterial)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+                            )
                     }
                 } header: {
                     Text("Preview")

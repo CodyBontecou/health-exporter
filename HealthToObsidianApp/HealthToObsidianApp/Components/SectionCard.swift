@@ -1,6 +1,7 @@
 import SwiftUI
 
 // MARK: - Compact Status Badge
+// Liquid Glass pill-style status indicator with glow effects
 
 struct CompactStatusBadge: View {
     let icon: String
@@ -8,43 +9,53 @@ struct CompactStatusBadge: View {
     let isConnected: Bool
     let action: (() -> Void)?
 
+    @State private var isPressed = false
+
     var body: some View {
         Button(action: { action?() }) {
-            VStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .medium))
+
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                    .lineLimit(1)
+
+                // Status dot with glow
                 ZStack {
                     Circle()
-                        .fill(isConnected ? Color.accent.opacity(0.2) : Color.bgSecondary)
-                        .frame(width: 56, height: 56)
-                        .overlay(
-                            Circle()
-                                .strokeBorder(isConnected ? Color.accent.opacity(0.4) : Color.borderDefault, lineWidth: 1.5)
-                        )
+                        .fill(isConnected ? Color.success : Color.textMuted)
+                        .frame(width: 8, height: 8)
+                        .blur(radius: isConnected ? 4 : 0)
+                        .opacity(isConnected ? 0.6 : 0)
 
-                    Image(systemName: icon)
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(isConnected ? Color.accent : Color.textMuted)
-                }
-
-                HStack(spacing: Spacing.xs) {
-                    Text(title)
-                        .font(Typography.caption())
-                        .foregroundStyle(Color.textSecondary)
-                        .lineLimit(1)
-
-                    if isConnected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(Color.accent)
-                    } else {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(Color.textMuted)
-                    }
+                    Circle()
+                        .fill(isConnected ? Color.success : Color.textMuted)
+                        .frame(width: 8, height: 8)
                 }
             }
+            .foregroundStyle(isConnected ? Color.textPrimary : Color.textSecondary)
+            .padding(.horizontal, Spacing.md + 2)
+            .padding(.vertical, Spacing.sm + 2)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+            )
+            .clipShape(Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(isConnected ? Color.success.opacity(0.4) : Color.white.opacity(0.1), lineWidth: 1)
+            )
+            .shadow(color: isConnected ? Color.success.opacity(0.2) : Color.clear, radius: 8, x: 0, y: 4)
+            .scaleEffect(isPressed ? 0.97 : 1.0)
         }
         .buttonStyle(.plain)
         .disabled(action == nil)
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                isPressed = pressing
+            }
+        }, perform: {})
     }
 }
 
@@ -171,28 +182,37 @@ struct ExportSettingsCard: View {
     var body: some View {
         SectionCard {
             VStack(alignment: .leading, spacing: Spacing.lg) {
-                // Section header
+                // Section header with Liquid Glass icon
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: "gearshape.fill")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Color.textSecondary)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(Color.accent)
+                        .frame(width: 32, height: 32)
+                        .background(
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                        )
+                        .overlay(
+                            Circle()
+                                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+                        )
 
                     Text("Export Settings")
-                        .font(Typography.headline())
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(Color.textPrimary)
                 }
 
-                // Subfolder input
+                // Subfolder input with Liquid Glass
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("SUBFOLDER")
-                        .font(Typography.label())
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Color.textMuted)
-                        .tracking(1)
+                        .tracking(2)
 
                     HStack(spacing: Spacing.sm) {
                         Image(systemName: "folder")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(Color.textMuted)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(Color.accent)
 
                         TextField("Health", text: $subfolder)
                             .font(Typography.bodyMono())
@@ -204,25 +224,25 @@ struct ExportSettingsCard: View {
                             }
                     }
                     .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.sm + 4)
+                    .padding(.vertical, Spacing.md)
                     .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color.bgSecondary)
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(.ultraThinMaterial)
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .strokeBorder(Color.borderDefault, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
                     )
                 }
 
-                // Date range pickers
-                VStack(alignment: .leading, spacing: Spacing.md) {
+                // Date range pickers with Liquid Glass
+                VStack(alignment: .leading, spacing: Spacing.lg) {
                     // Start Date
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("START DATE")
-                            .font(Typography.label())
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(Color.textMuted)
-                            .tracking(1)
+                            .tracking(2)
 
                         DatePicker(
                             selection: $startDate,
@@ -234,23 +254,23 @@ struct ExportSettingsCard: View {
                         .datePickerStyle(.graphical)
                         .tint(.accent)
                         .colorScheme(.dark)
-                        .padding(Spacing.sm)
+                        .padding(Spacing.md)
                         .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.bgSecondary)
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(.ultraThinMaterial)
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .strokeBorder(Color.borderDefault, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
                         )
                     }
 
                     // End Date
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text("END DATE")
-                            .font(Typography.label())
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(Color.textMuted)
-                            .tracking(1)
+                            .tracking(2)
 
                         DatePicker(
                             selection: $endDate,
@@ -262,34 +282,45 @@ struct ExportSettingsCard: View {
                         .datePickerStyle(.graphical)
                         .tint(.accent)
                         .colorScheme(.dark)
-                        .padding(Spacing.sm)
+                        .padding(Spacing.md)
                         .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.bgSecondary)
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(.ultraThinMaterial)
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .strokeBorder(Color.borderDefault, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
                         )
                     }
                 }
 
-                // Export path preview
+                // Export path preview with Liquid Glass
                 HStack(spacing: Spacing.sm) {
-                    Image(systemName: "arrow.right.circle")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.accent)
+                    ZStack {
+                        Image(systemName: "arrow.right.circle.fill")
+                            .foregroundStyle(Color.accent)
+                            .blur(radius: 4)
+                            .opacity(0.5)
+
+                        Image(systemName: "arrow.right.circle.fill")
+                            .foregroundStyle(Color.accent)
+                    }
+                    .font(.system(size: 14, weight: .medium))
 
                     Text(exportPath)
-                        .font(Typography.caption())
-                        .foregroundStyle(Color.textMuted)
+                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.textPrimary)
                         .lineLimit(1)
                 }
                 .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
+                .padding(.vertical, Spacing.sm + 2)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.accentSubtle)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(Color.accent.opacity(0.3), lineWidth: 1)
                 )
             }
         }

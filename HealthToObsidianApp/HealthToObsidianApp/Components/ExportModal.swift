@@ -17,17 +17,17 @@ struct ExportModal: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.lg) {
-                        // Subfolder input
+                        // Subfolder input with Liquid Glass styling
                         VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("SUBFOLDER")
-                                .font(Typography.label())
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(Color.textMuted)
-                                .tracking(1)
+                                .tracking(2)
 
                             HStack(spacing: Spacing.sm) {
                                 Image(systemName: "folder")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(Color.textMuted)
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(Color.accent)
 
                                 TextField("Health", text: $subfolder)
                                     .font(Typography.bodyMono())
@@ -39,25 +39,25 @@ struct ExportModal: View {
                                     }
                             }
                             .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, Spacing.sm + 4)
+                            .padding(.vertical, Spacing.md)
                             .background(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(Color.bgSecondary)
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(.ultraThinMaterial)
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(Color.borderDefault, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
                             )
                         }
 
-                        // Date range pickers
-                        VStack(alignment: .leading, spacing: Spacing.md) {
+                        // Date range pickers with Liquid Glass styling
+                        VStack(alignment: .leading, spacing: Spacing.lg) {
                             // Start Date
                             VStack(alignment: .leading, spacing: Spacing.sm) {
                                 Text("START DATE")
-                                    .font(Typography.label())
+                                    .font(.system(size: 12, weight: .semibold))
                                     .foregroundStyle(Color.textMuted)
-                                    .tracking(1)
+                                    .tracking(2)
 
                                 DatePicker(
                                     selection: $startDate,
@@ -69,23 +69,24 @@ struct ExportModal: View {
                                 .datePickerStyle(.graphical)
                                 .tint(.accent)
                                 .colorScheme(.dark)
-                                .padding(Spacing.sm)
+                                .padding(Spacing.md)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(Color.bgSecondary)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .fill(.ultraThinMaterial)
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .strokeBorder(Color.borderDefault, lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
                                 )
+                                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                             }
 
                             // End Date
                             VStack(alignment: .leading, spacing: Spacing.sm) {
                                 Text("END DATE")
-                                    .font(Typography.label())
+                                    .font(.system(size: 12, weight: .semibold))
                                     .foregroundStyle(Color.textMuted)
-                                    .tracking(1)
+                                    .tracking(2)
 
                                 DatePicker(
                                     selection: $endDate,
@@ -97,41 +98,54 @@ struct ExportModal: View {
                                 .datePickerStyle(.graphical)
                                 .tint(.accent)
                                 .colorScheme(.dark)
-                                .padding(Spacing.sm)
+                                .padding(Spacing.md)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(Color.bgSecondary)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .fill(.ultraThinMaterial)
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .strokeBorder(Color.borderDefault, lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
                                 )
+                                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                             }
                         }
 
-                        // Export path preview
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
+                        // Export path preview with Liquid Glass styling
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             Text("EXPORT TO")
-                                .font(Typography.label())
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(Color.textMuted)
-                                .tracking(1)
+                                .tracking(2)
 
                             HStack(spacing: Spacing.sm) {
-                                Image(systemName: "arrow.right.circle")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(Color.accent)
+                                ZStack {
+                                    Image(systemName: "arrow.right.circle.fill")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundStyle(Color.accent)
+                                        .blur(radius: 4)
+                                        .opacity(0.5)
+
+                                    Image(systemName: "arrow.right.circle.fill")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundStyle(Color.accent)
+                                }
 
                                 Text(exportPath)
-                                    .font(Typography.caption())
-                                    .foregroundStyle(Color.textSecondary)
+                                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                    .foregroundStyle(Color.textPrimary)
                                     .lineLimit(2)
                             }
                             .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, Spacing.sm)
+                            .padding(.vertical, Spacing.md)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(Color.accentSubtle)
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(.ultraThinMaterial)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .strokeBorder(Color.accent.opacity(0.3), lineWidth: 1)
                             )
                         }
 
