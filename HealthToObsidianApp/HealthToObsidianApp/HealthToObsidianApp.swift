@@ -13,7 +13,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         // Check if this is our export reminder notification
         if response.notification.request.identifier.contains("export.reminder") {
             Task { @MainActor in
-                await SchedulingManager.shared.performCatchUpExportIfNeeded()
+                await SchedulingManager.shared.performNotificationTriggeredExport()
             }
         }
         completionHandler()
@@ -32,7 +32,6 @@ struct HealthToObsidianApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var schedulingManager = SchedulingManager.shared
     @StateObject private var healthKitManager = HealthKitManager.shared
-    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         // Register background tasks at app launch - must happen before app finishes launching
@@ -55,14 +54,6 @@ struct HealthToObsidianApp: App {
             ContentView()
                 .environmentObject(schedulingManager)
                 .environmentObject(healthKitManager)
-                .onChange(of: scenePhase) { oldPhase, newPhase in
-                    if newPhase == .active {
-                        // Perform catch-up export when app becomes active
-                        Task { @MainActor in
-                            await schedulingManager.performCatchUpExportIfNeeded()
-                        }
-                    }
-                }
         }
     }
 }

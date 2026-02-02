@@ -98,6 +98,21 @@ struct ContentView: View {
         } message: {
             Text(errorMessage)
         }
+        .alert(
+            schedulingManager.notificationExportResult?.title ?? "Export",
+            isPresented: Binding(
+                get: { schedulingManager.notificationExportResult != nil },
+                set: { if !$0 { schedulingManager.notificationExportResult = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                schedulingManager.notificationExportResult = nil
+            }
+        } message: {
+            if let result = schedulingManager.notificationExportResult {
+                Text(result.message)
+            }
+        }
         .task {
             if healthKitManager.isHealthDataAvailable && !healthKitManager.isAuthorized {
                 do {

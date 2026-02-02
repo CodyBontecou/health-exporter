@@ -4,6 +4,56 @@ import Combine
 import UserNotifications
 import os.log
 
+/// Result of a notification-triggered export to display in the UI
+struct NotificationExportResult: Equatable {
+    enum Status: Equatable {
+        case success(daysExported: Int)
+        case partialSuccess(exported: Int, total: Int)
+        case failure(reason: String)
+        case noExportNeeded
+    }
+
+    let status: Status
+    let timestamp: Date
+
+    var title: String {
+        switch status {
+        case .success:
+            return "Export Completed"
+        case .partialSuccess:
+            return "Partial Export"
+        case .failure:
+            return "Export Failed"
+        case .noExportNeeded:
+            return "Up to Date"
+        }
+    }
+
+    var message: String {
+        switch status {
+        case .success(let days):
+            return days == 1
+                ? "Successfully exported yesterday's health data"
+                : "Successfully exported \(days) days of health data"
+        case .partialSuccess(let exported, let total):
+            return "Exported \(exported) of \(total) days"
+        case .failure(let reason):
+            return reason
+        case .noExportNeeded:
+            return "Your health data is already up to date"
+        }
+    }
+
+    var isSuccess: Bool {
+        switch status {
+        case .success, .noExportNeeded:
+            return true
+        case .partialSuccess, .failure:
+            return false
+        }
+    }
+}
+
 /// Manages background task scheduling for automated health data exports
 class SchedulingManager: ObservableObject {
     @MainActor static let shared = SchedulingManager()
@@ -15,6 +65,9 @@ class SchedulingManager: ObservableObject {
 
     /// Key for tracking last successful export date in UserDefaults
     private let lastExportDateKey = "lastSuccessfulExportDate"
+
+    /// Result from notification-triggered export, observed by UI to show alert
+    @MainActor @Published var notificationExportResult: NotificationExportResult?
 
     @MainActor @Published var schedule: ExportSchedule {
         didSet {
@@ -169,6 +222,21 @@ class SchedulingManager: ObservableObject {
 
     // MARK: - Catch-Up Logic
 
+    /// Performs catch-up export triggered by notification tap and sets result for UI display
+    @MainActor func performNotificationTriggeredExport() async {
+        guard schedule.isEnabled else {
+            logger.info("Schedule disabled, skipping notification-triggered export")
+            notificationExportResult = NotificationExportResult(
+                status: .failure(reason: "Scheduling is disabled"),
+                timestamp: Date()
+            )
+            return
+        }
+
+        let result = await performCatchUpExportInternal()
+        notificationExportResult = result
+    }
+
     /// Checks for and exports any missed days since last export
     /// Call this when the app becomes active
     @MainActor func performCatchUpExportIfNeeded() async {
@@ -177,6 +245,11 @@ class SchedulingManager: ObservableObject {
             return
         }
 
+        _ = await performCatchUpExportInternal()
+    }
+
+    /// Internal method that performs catch-up export and returns result for UI display
+    @MainActor private func performCatchUpExportInternal() async -> NotificationExportResult {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
@@ -206,21 +279,23 @@ class SchedulingManager: ObservableObject {
         // If we've already exported data for yesterday, nothing to do
         if lastExportedDataDay >= yesterday {
             logger.info("Catch-up check: No missed exports")
-            return
+            return NotificationExportResult(status: .noExportNeeded, timestamp: Date())
         }
 
         // Calculate missed dates (from day after last exported data to yesterday)
+        // But don't go further back than oldestDateToExport
         var missedDates: [Date] = []
-        var checkDate = calendar.date(byAdding: .day, value: 1, to: lastExportedDataDay)!
+        let dayAfterLastExport = calendar.date(byAdding: .day, value: 1, to: lastExportedDataDay)!
+        var checkDate = max(dayAfterLastExport, oldestDateToExport)
 
-        while checkDate <= yesterday && checkDate >= oldestDateToExport {
+        while checkDate <= yesterday {
             missedDates.append(checkDate)
             checkDate = calendar.date(byAdding: .day, value: 1, to: checkDate)!
         }
 
         guard !missedDates.isEmpty else {
             logger.info("Catch-up check: No dates to export")
-            return
+            return NotificationExportResult(status: .noExportNeeded, timestamp: Date())
         }
 
         logger.info("Catch-up: Found \(missedDates.count) missed date(s) to export")
@@ -244,6 +319,26 @@ class SchedulingManager: ObservableObject {
             )
 
             logger.info("Catch-up export completed: \(result.successCount)/\(result.totalCount) days")
+
+            // Return appropriate result
+            if result.successCount == result.totalCount {
+                return NotificationExportResult(
+                    status: .success(daysExported: result.successCount),
+                    timestamp: Date()
+                )
+            } else {
+                return NotificationExportResult(
+                    status: .partialSuccess(exported: result.successCount, total: result.totalCount),
+                    timestamp: Date()
+                )
+            }
+        } else {
+            // All failed
+            let reason = result.failureReason?.shortDescription ?? "Unknown error"
+            return NotificationExportResult(
+                status: .failure(reason: reason),
+                timestamp: Date()
+            )
         }
     }
 
