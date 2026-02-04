@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - Color Palette
-// Health.md-inspired dark theme with signature purple
+// Health.md-inspired dark theme with signature rose accent
 
 extension Color {
     // Neutral background - deep greys
@@ -19,10 +19,10 @@ extension Color {
     static let textSecondary = Color(hex: "A8A8A8")  // Secondary text
     static let textMuted = Color(hex: "6A6A6E")      // Muted/disabled
 
-    // Signature purple accent
-    static let accent = Color(hex: "8B5CF6")         // Signature purple
-    static let accentHover = Color(hex: "A78BFA")    // Lighter purple hover
-    static let accentSubtle = Color(hex: "8B5CF6").opacity(0.15) // Backgrounds
+    // Signature rose accent (matching app icon heart)
+    static let accent = Color(hex: "E05A6D")         // Rose pink (from icon heart)
+    static let accentHover = Color(hex: "F07A8A")    // Lighter rose hover
+    static let accentSubtle = Color(hex: "E05A6D").opacity(0.15) // Backgrounds
 
     // Semantic colors - restrained, not vibrant
     static let success = Color(hex: "4A9B6D")        // Muted green

@@ -310,19 +310,11 @@ struct ExportTabView: View {
                 }
 
                 // Title
-                VStack(spacing: Spacing.sm) {
-                    Text("OBSIDIAN")
-                        .font(Typography.hero())
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.textPrimary)
-                        .tracking(4)
-
-                    Text("HEALTH")
-                        .font(Typography.hero())
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.textPrimary)
-                        .tracking(4)
-                }
+                Text("Health.md")
+                    .font(Typography.hero())
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.textPrimary)
+                    .tracking(2)
 
                 // Subtitle
                 Text("Export your wellness data to markdown")
