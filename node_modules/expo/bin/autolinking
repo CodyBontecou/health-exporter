@@ -1,3 +1,0 @@
-#!/usr/bin/env node
-
-require('expo-modules-autolinking/bin/expo-modules-autolinking');

@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/index.ts"],"names":[],"mappings":";AAAO,IAAM,eAAe,MAAM;AAG3B,IAAM,uBAAA,GAA0B,CAAC,MAAA,KAAoC;AAAC","file":"index.mjs","sourcesContent":["export const isEdgeToEdge = () => true;\n\n// @ts-expect-error noop on all platforms except android\nexport const controlEdgeToEdgeValues = (values: Record<string, unknown>) => {};\n"]}

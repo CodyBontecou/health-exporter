@@ -1,1 +1,0 @@
-{"version":3,"names":["startScreenTransition","finishScreenTransition","ScreenTransition"],"sourceRoot":"../../../src","sources":["screenTransition/index.ts"],"mappings":"AAAA,YAAY;;AAEZ,SACEA,qBAAqB,EACrBC,sBAAsB,QACjB,uBAAoB;AAC3B,SAASC,gBAAgB,QAAQ,cAAW","ignoreList":[]}

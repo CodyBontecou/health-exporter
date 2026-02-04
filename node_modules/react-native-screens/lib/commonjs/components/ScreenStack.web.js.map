@@ -1,1 +1,0 @@
-{"version":3,"names":["_reactNative","require","ScreenStack","View","_default","exports","default"],"sourceRoot":"../../../src","sources":["components/ScreenStack.web.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAEA,MAAMC,WAAW,GAAGC,iBAAI;AAAC,IAAAC,QAAA,GAAAC,OAAA,CAAAC,OAAA,GAEVJ,WAAW","ignoreList":[]}

@@ -1,1 +1,0 @@
-{"version":3,"file":"animationsManager.d.ts","sourceRoot":"","sources":["../../../src/layoutReanimation/animationsManager.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAGV,4BAA4B,EAC7B,MAAM,gCAAgC,CAAC;AA2BxC,iBAAS,4BAA4B,IAAI;IACvC,KAAK,EAAE,4BAA4B,CAAC;IACpC,IAAI,EAAE,CAAC,GAAG,EAAE,MAAM,KAAK,IAAI,CAAC;CAC7B,CAoEA;AAOD,MAAM,MAAM,uBAAuB,GAAG,UAAU,CAC9C,OAAO,4BAA4B,CACpC,CAAC"}

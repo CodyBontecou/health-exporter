@@ -1,1 +1,0 @@
-{"version":3,"names":["React","LocaleDirContext","createContext","displayName"],"sourceRoot":"../../src","sources":["LocaleDirContext.tsx"],"mappings":";;AAAA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAI9B,OAAO,MAAMC,gBAAgB,gBAAGD,KAAK,CAACE,aAAa,CAAkB,KAAK,CAAC;AAE3ED,gBAAgB,CAACE,WAAW,GAAG,kBAAkB","ignoreList":[]}

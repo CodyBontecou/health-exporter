@@ -1,1 +1,0 @@
-{"version":3,"names":["getLabel","options","fallback","label","undefined","title"],"sourceRoot":"../../../src","sources":["Label/getLabel.tsx"],"mappings":";;AAAA,OAAO,SAASA,QAAQA,CACtBC,OAA2C,EAC3CC,QAAgB,EACR;EACR,OAAOD,OAAO,CAACE,KAAK,KAAKC,SAAS,GAC9BH,OAAO,CAACE,KAAK,GACbF,OAAO,CAACI,KAAK,KAAKD,SAAS,GACzBH,OAAO,CAACI,KAAK,GACbH,QAAQ;AAChB","ignoreList":[]}

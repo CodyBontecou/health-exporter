@@ -16,6 +16,9 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 
+# Node modules
+node_modules/
+
 # CocoaPods
 Pods/
 

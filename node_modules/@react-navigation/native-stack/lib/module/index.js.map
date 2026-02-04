@@ -1,1 +1,0 @@
-{"version":3,"names":["createNativeStackNavigator","NativeStackView","useAnimatedHeaderHeight"],"sourceRoot":"../../src","sources":["index.tsx"],"mappings":";;AAAA;AACA;AACA;AACA,SAASA,0BAA0B,QAAQ,4CAAyC;;AAEpF;AACA;AACA;AACA,SAASC,eAAe,QAAQ,yBAAyB;;AAEzD;AACA;AACA;AACA,SAASC,uBAAuB,QAAQ,oCAAiC;;AAEzE;AACA;AACA","ignoreList":[]}

@@ -1,1 +1,0 @@
-{"version":3,"sources":["index.ts"],"names":[],"mappings":";;;;;;;;;;;;AACA","sourcesContent":["export type { PressableProps } from './PressableProps';\nexport { default } from './Pressable';\n"]}

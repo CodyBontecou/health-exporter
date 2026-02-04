@@ -1,1 +1,0 @@
-{"version":3,"names":["_reactNative","require","SearchBar","View","_default","exports","default"],"sourceRoot":"../../../src","sources":["components/SearchBar.web.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAEA,MAAMC,SAAS,GAAGC,iBAAI;AAAC,IAAAC,QAAA,GAAAC,OAAA,CAAAC,OAAA,GAERJ,SAAS","ignoreList":[]}

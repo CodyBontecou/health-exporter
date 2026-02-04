@@ -1,1 +1,0 @@
-{"version":3,"file":"TransitionProgressContext.d.ts","sourceRoot":"","sources":["../../src/TransitionProgressContext.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,KAAK,MAAM,OAAO,CAAC;AAC/B,OAAO,EAAE,QAAQ,EAAE,MAAM,cAAc,CAAC;AAExC,KAAK,6BAA6B,GAAG;IACnC,QAAQ,EAAE,QAAQ,CAAC,KAAK,CAAC;IACzB,OAAO,EAAE,QAAQ,CAAC,KAAK,CAAC;IACxB,YAAY,EAAE,QAAQ,CAAC,KAAK,CAAC;CAC9B,CAAC;;AAEF,wBAEE"}

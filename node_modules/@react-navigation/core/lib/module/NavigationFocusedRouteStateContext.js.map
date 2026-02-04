@@ -1,1 +1,0 @@
-{"version":3,"names":["React","NavigationFocusedRouteStateContext","createContext","undefined"],"sourceRoot":"../../src","sources":["NavigationFocusedRouteStateContext.tsx"],"mappings":";;AAAA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAc9B;AACA;AACA;AACA,OAAO,MAAMC,kCAAkC,gBAAGD,KAAK,CAACE,aAAa,CAEnEC,SAAS,CAAC","ignoreList":[]}

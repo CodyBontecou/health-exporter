@@ -1,1 +1,0 @@
-{"version":3,"sources":["constants.ts"],"names":["DEFAULT_TOUCH_SLOP","MINIMAL_RECOGNIZABLE_MAGNITUDE"],"mappings":";;;;;;AAAO,MAAMA,kBAAkB,GAAG,EAA3B;;AACA,MAAMC,8BAA8B,GAAG,GAAvC","sourcesContent":["export const DEFAULT_TOUCH_SLOP = 15;\nexport const MINIMAL_RECOGNIZABLE_MAGNITUDE = 0.1;\n"]}

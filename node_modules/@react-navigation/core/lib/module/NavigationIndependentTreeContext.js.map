@@ -1,1 +1,0 @@
-{"version":3,"names":["React","NavigationIndependentTreeContext","createContext"],"sourceRoot":"../../src","sources":["NavigationIndependentTreeContext.tsx"],"mappings":";;AAAA,OAAO,KAAKA,KAAK,MAAM,OAAO;;AAE9B;AACA;AACA;AACA,OAAO,MAAMC,gCAAgC,gBAAGD,KAAK,CAACE,aAAa,CAAC,KAAK,CAAC","ignoreList":[]}

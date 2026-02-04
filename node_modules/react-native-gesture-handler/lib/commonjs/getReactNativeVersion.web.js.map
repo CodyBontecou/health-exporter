@@ -1,1 +1,0 @@
-{"version":3,"sources":["getReactNativeVersion.web.ts"],"names":["getReactNativeVersion","Error"],"mappings":";;;;;;;AAAO,SAASA,qBAAT,GAAiC;AACtC,QAAM,IAAIC,KAAJ,CAAU,+CAAV,CAAN;AACD","sourcesContent":["export function getReactNativeVersion() {\n  throw new Error('getReactNativeVersion is not supported on web');\n}\n"]}

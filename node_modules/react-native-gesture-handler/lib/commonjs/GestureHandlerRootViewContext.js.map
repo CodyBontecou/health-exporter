@@ -1,1 +1,0 @@
-{"version":3,"sources":["GestureHandlerRootViewContext.ts"],"names":["React","createContext"],"mappings":";;;;;;;AAAA;;;;4BAEeA,eAAMC,aAAN,CAAoB,KAApB,C","sourcesContent":["import React from 'react';\n\nexport default React.createContext(false);\n"]}
