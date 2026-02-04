@@ -1,0 +1,31 @@
+import { State } from '../../State';
+import type IGestureHandler from '../handlers/IGestureHandler';
+export default class GestureHandlerOrchestrator {
+    private static instance;
+    private gestureHandlers;
+    private awaitingHandlers;
+    private awaitingHandlersTags;
+    private handlingChangeSemaphore;
+    private activationIndex;
+    private constructor();
+    private scheduleFinishedHandlersCleanup;
+    private cleanHandler;
+    removeHandlerFromOrchestrator(handler: IGestureHandler): void;
+    private cleanupFinishedHandlers;
+    private hasOtherHandlerToWaitFor;
+    private shouldBeCancelledByFinishedHandler;
+    private tryActivate;
+    private shouldActivate;
+    private cleanupAwaitingHandlers;
+    onHandlerStateChange(handler: IGestureHandler, newState: State, oldState: State, sendIfDisabled?: boolean): void;
+    private makeActive;
+    private addAwaitingHandler;
+    recordHandlerIfNotPresent(handler: IGestureHandler): void;
+    private shouldHandlerWaitForOther;
+    private canRunSimultaneously;
+    private shouldHandlerBeCancelledBy;
+    private checkOverlap;
+    private isFinished;
+    cancelMouseAndPenGestures(currentHandler: IGestureHandler): void;
+    static getInstance(): GestureHandlerOrchestrator;
+}

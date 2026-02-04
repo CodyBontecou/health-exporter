@@ -1,0 +1,25 @@
+apply plugin: 'com.android.library'
+
+group = 'host.exp.exponent'
+version = '0.29.24'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useDefaultAndroidSdkVersions()
+useExpoPublishing()
+
+android {
+  namespace "expo.modules.splashscreen"
+  defaultConfig {
+    versionCode 17
+    versionName '0.29.24'
+  }
+}
+
+dependencies {
+  implementation 'androidx.appcompat:appcompat:1.7.0'
+  implementation "androidx.core:core-splashscreen:1.2.0-alpha02"
+  implementation "com.facebook.react:react-android"
+}

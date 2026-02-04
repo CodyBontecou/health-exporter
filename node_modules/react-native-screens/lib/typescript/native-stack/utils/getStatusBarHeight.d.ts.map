@@ -1,0 +1,1 @@
+{"version":3,"file":"getStatusBarHeight.d.ts","sourceRoot":"","sources":["../../../../src/native-stack/utils/getStatusBarHeight.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,gCAAgC,CAAC;AAGtD,MAAM,CAAC,OAAO,UAAU,kBAAkB,CACxC,QAAQ,EAAE,MAAM,EAChB,UAAU,EAAE,IAAI,EAChB,sBAAsB,EAAE,OAAO,UAehC"}

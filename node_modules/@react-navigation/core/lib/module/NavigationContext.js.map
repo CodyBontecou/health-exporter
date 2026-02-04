@@ -1,0 +1,1 @@
+{"version":3,"names":["React","NavigationContext","createContext","undefined"],"sourceRoot":"../../src","sources":["NavigationContext.tsx"],"mappings":";;AACA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAI9B;AACA;AACA;AACA,OAAO,MAAMC,iBAAiB,gBAAGD,KAAK,CAACE,aAAa,CAElDC,SAAS,CAAC","ignoreList":[]}

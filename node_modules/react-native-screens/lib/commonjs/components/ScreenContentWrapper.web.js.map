@@ -1,0 +1,1 @@
+{"version":3,"names":["_reactNative","require","ScreenContentWrapper","View","_default","exports","default"],"sourceRoot":"../../../src","sources":["components/ScreenContentWrapper.web.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAEA,MAAMC,oBAAoB,GAAGC,iBAAI;AAAC,IAAAC,QAAA,GAAAC,OAAA,CAAAC,OAAA,GAEnBJ,oBAAoB","ignoreList":[]}

@@ -1,0 +1,1 @@
+{"version":3,"file":"GestureDetectorProvider.d.ts","sourceRoot":"","sources":["../../../src/gesture-handler/GestureDetectorProvider.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,OAAO,CAAC;AAS1B,MAAM,CAAC,OAAO,UAAU,uBAAuB,CAAC,KAAK,EAAE;IACrD,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;CAC3B,qBAIA"}

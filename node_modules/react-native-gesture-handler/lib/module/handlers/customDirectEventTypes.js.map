@@ -1,0 +1,1 @@
+{"version":3,"sources":["customDirectEventTypes.ts"],"names":["customDirectEventTypes"],"mappings":"AAAA;AACA,SAASA,sBAAT,QAAuC,qEAAvC","sourcesContent":["// @ts-ignore - its taken straight from RN\nexport { customDirectEventTypes } from 'react-native/Libraries/Renderer/shims/ReactNativeViewConfigRegistry';\n"]}

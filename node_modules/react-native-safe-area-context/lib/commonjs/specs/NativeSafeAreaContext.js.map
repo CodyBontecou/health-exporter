@@ -1,0 +1,1 @@
+{"version":3,"names":["_reactNative","require","_default","exports","default","TurboModuleRegistry","get"],"sourceRoot":"../../../src","sources":["specs/NativeSafeAreaContext.ts"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAAgE,IAAAC,QAAA,GAAAC,OAAA,CAAAC,OAAA,GAsBjDC,gCAAmB,CAACC,GAAG,CAAO,oBAAoB,CAAC","ignoreList":[]}

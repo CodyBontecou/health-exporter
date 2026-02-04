@@ -1,0 +1,1 @@
+{"version":3,"file":"DelayedFreeze.d.ts","sourceRoot":"","sources":["../../../../src/components/helpers/DelayedFreeze.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,OAAO,CAAC;AAG1B,UAAU,kBAAkB;IAC1B,MAAM,EAAE,OAAO,CAAC;IAChB,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;CAC3B;AAID,iBAAS,aAAa,CAAC,EAAE,MAAM,EAAE,QAAQ,EAAE,EAAE,kBAAkB,qBAc9D;AAED,eAAe,aAAa,CAAC"}

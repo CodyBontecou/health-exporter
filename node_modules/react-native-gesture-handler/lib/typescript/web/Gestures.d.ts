@@ -1,0 +1,36 @@
+import PanGestureHandler from './handlers/PanGestureHandler';
+import TapGestureHandler from './handlers/TapGestureHandler';
+import LongPressGestureHandler from './handlers/LongPressGestureHandler';
+import PinchGestureHandler from './handlers/PinchGestureHandler';
+import RotationGestureHandler from './handlers/RotationGestureHandler';
+import FlingGestureHandler from './handlers/FlingGestureHandler';
+import NativeViewGestureHandler from './handlers/NativeViewGestureHandler';
+import ManualGestureHandler from './handlers/ManualGestureHandler';
+import HoverGestureHandler from './handlers/HoverGestureHandler';
+import HammerNativeViewGestureHandler from '../web_hammer/NativeViewGestureHandler';
+import HammerPanGestureHandler from '../web_hammer/PanGestureHandler';
+import HammerTapGestureHandler from '../web_hammer/TapGestureHandler';
+import HammerLongPressGestureHandler from '../web_hammer/LongPressGestureHandler';
+import HammerPinchGestureHandler from '../web_hammer/PinchGestureHandler';
+import HammerRotationGestureHandler from '../web_hammer/RotationGestureHandler';
+import HammerFlingGestureHandler from '../web_hammer/FlingGestureHandler';
+export declare const Gestures: {
+    NativeViewGestureHandler: typeof NativeViewGestureHandler;
+    PanGestureHandler: typeof PanGestureHandler;
+    TapGestureHandler: typeof TapGestureHandler;
+    LongPressGestureHandler: typeof LongPressGestureHandler;
+    PinchGestureHandler: typeof PinchGestureHandler;
+    RotationGestureHandler: typeof RotationGestureHandler;
+    FlingGestureHandler: typeof FlingGestureHandler;
+    ManualGestureHandler: typeof ManualGestureHandler;
+    HoverGestureHandler: typeof HoverGestureHandler;
+};
+export declare const HammerGestures: {
+    NativeViewGestureHandler: typeof HammerNativeViewGestureHandler;
+    PanGestureHandler: typeof HammerPanGestureHandler;
+    TapGestureHandler: typeof HammerTapGestureHandler;
+    LongPressGestureHandler: typeof HammerLongPressGestureHandler;
+    PinchGestureHandler: typeof HammerPinchGestureHandler;
+    RotationGestureHandler: typeof HammerRotationGestureHandler;
+    FlingGestureHandler: typeof HammerFlingGestureHandler;
+};

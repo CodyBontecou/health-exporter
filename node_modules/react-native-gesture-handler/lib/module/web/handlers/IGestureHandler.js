@@ -1,0 +1,2 @@
+
+//# sourceMappingURL=IGestureHandler.js.map

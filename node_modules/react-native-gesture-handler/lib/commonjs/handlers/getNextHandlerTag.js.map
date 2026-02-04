@@ -1,0 +1,1 @@
+{"version":3,"sources":["getNextHandlerTag.ts"],"names":["handlerTag","getNextHandlerTag"],"mappings":";;;;;;AAAA,IAAIA,UAAU,GAAG,CAAjB;;AAEO,SAASC,iBAAT,GAAqC;AAC1C,SAAOD,UAAU,EAAjB;AACD","sourcesContent":["let handlerTag = 1;\n\nexport function getNextHandlerTag(): number {\n  return handlerTag++;\n}\n"]}

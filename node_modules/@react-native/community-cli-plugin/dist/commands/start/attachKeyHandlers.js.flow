@@ -1,0 +1,23 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow strict-local
+ * @format
+ * @oncall react_native
+ */
+
+import type { Config } from "@react-native-community/cli-types";
+import type TerminalReporter from "metro/src/lib/TerminalReporter";
+
+declare export default function attachKeyHandlers({
+  cliConfig: Config,
+  devServerUrl: string,
+  messageSocket: $ReadOnly<{
+    broadcast: (type: string, params?: Record<string, mixed> | null) => void,
+    ...
+  }>,
+  reporter: TerminalReporter,
+}): void;

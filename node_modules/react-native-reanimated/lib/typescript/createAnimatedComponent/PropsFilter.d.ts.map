@@ -1,0 +1,1 @@
+{"version":3,"file":"PropsFilter.d.ts","sourceRoot":"","sources":["../../../src/createAnimatedComponent/PropsFilter.tsx"],"names":[],"mappings":";AAQA,OAAO,KAAK,EAIV,0BAA0B,EAC1B,YAAY,EACb,MAAM,eAAe,CAAC;AASvB,qBAAa,WAAY,YAAW,YAAY;IAC9C,OAAO,CAAC,aAAa,CAAM;IAEpB,sBAAsB,CAC3B,SAAS,EAAE,KAAK,CAAC,SAAS,CAAC,OAAO,EAAE,OAAO,CAAC,GAAG,0BAA0B,GACxE,MAAM,CAAC,MAAM,EAAE,OAAO,CAAC;CA8D3B"}

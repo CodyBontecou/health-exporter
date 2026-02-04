@@ -1,0 +1,38 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow strict-local
+ * @format
+ * @oncall react_native
+ */
+
+type Release = {
+  // The current stable release
+  stable: string,
+  // The current candidate release. These are only populated if the latest release is a candidate release.
+  candidate?: string,
+  changelogUrl: string,
+  diffUrl: string,
+};
+
+/**
+ * Logs out a message if the user's version is behind a stable version of React Native
+ */
+declare export function logIfUpdateAvailable(
+  projectRoot: string
+): Promise<void>;
+
+/**
+ * Checks via GitHub API if there is a newer stable React Native release and,
+ * if it exists, returns the release data.
+ *
+ * If the latest release is not newer or if it's a prerelease, the function
+ * will return undefined.
+ */
+declare export default function getLatestRelease(
+  name: string,
+  currentVersion: string
+): Promise<Release | void>;

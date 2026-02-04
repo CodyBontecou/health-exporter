@@ -1,0 +1,1 @@
+{"version":3,"names":["reanimatedJS","shouldBeUseWeb","NativeReanimated"],"sourceRoot":"../../../src","sources":["NativeReanimated/index.ts"],"mappings":"AAAA,YAAY;;AACZ,OAAOA,YAAY,MAAM,2BAAkB;AAC3C,SAASC,cAAc,QAAQ,uBAAoB;AACnD,SAASC,gBAAgB,QAAQ,uBAAoB;AAErD,eAAeD,cAAc,CAAC,CAAC,GAAGD,YAAY,GAAG,IAAIE,gBAAgB,CAAC,CAAC","ignoreList":[]}

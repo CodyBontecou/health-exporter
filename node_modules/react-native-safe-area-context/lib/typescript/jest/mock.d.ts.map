@@ -1,0 +1,1 @@
+{"version":3,"file":"mock.d.ts","sourceRoot":"","sources":["../../../jest/mock.tsx"],"names":[],"mappings":"AACA,OAAO,KAAqB,MAAM,OAAO,CAAC;AAC1C,OAAO,KAAK,EAAE,OAAO,EAAE,MAAM,uBAAuB,CAAC;AACrD,OAAO,KAAK,EACV,qBAAqB,EACrB,qBAAqB,EACrB,oBAAoB,EACrB,MAAM,wBAAwB,CAAC;;;;;qDAsCmB,qBAAqB;2BApB/C,OAAO,qBAAqB;0BAC7B,OAAO,oBAAoB;;AAGnD,wBA6BE"}

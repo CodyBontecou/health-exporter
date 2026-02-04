@@ -1,0 +1,1 @@
+{"version":3,"names":["createNativeBottomTabNavigator","Error"],"sourceRoot":"../../../src","sources":["unstable/createNativeBottomTabNavigator.tsx"],"mappings":";;AAAA,OAAO,MAAMA,8BAAuH,GAClIA,CAAA,KAAM;EACJ,MAAM,IAAIC,KAAK,CAAC,wDAAwD,CAAC;AAC3E,CAAC","ignoreList":[]}

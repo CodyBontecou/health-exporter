@@ -1,0 +1,37 @@
+import { AdaptedEvent, EventTypes } from '../interfaces';
+type PointerEventCallback = (event: AdaptedEvent) => void;
+export default abstract class EventManager<T> {
+    protected readonly view: T;
+    protected pointersInBounds: number[];
+    protected activePointersCounter: number;
+    constructor(view: T);
+    abstract registerListeners(): void;
+    abstract unregisterListeners(): void;
+    protected abstract mapEvent(event: Event, eventType: EventTypes): AdaptedEvent;
+    protected onPointerDown(_event: AdaptedEvent): void;
+    protected onPointerAdd(_event: AdaptedEvent): void;
+    protected onPointerUp(_event: AdaptedEvent): void;
+    protected onPointerRemove(_event: AdaptedEvent): void;
+    protected onPointerMove(_event: AdaptedEvent): void;
+    protected onPointerLeave(_event: AdaptedEvent): void;
+    protected onPointerEnter(_event: AdaptedEvent): void;
+    protected onPointerCancel(_event: AdaptedEvent): void;
+    protected onPointerOutOfBounds(_event: AdaptedEvent): void;
+    protected onPointerMoveOver(_event: AdaptedEvent): void;
+    protected onPointerMoveOut(_event: AdaptedEvent): void;
+    setOnPointerDown(callback: PointerEventCallback): void;
+    setOnPointerAdd(callback: PointerEventCallback): void;
+    setOnPointerUp(callback: PointerEventCallback): void;
+    setOnPointerRemove(callback: PointerEventCallback): void;
+    setOnPointerMove(callback: PointerEventCallback): void;
+    setOnPointerLeave(callback: PointerEventCallback): void;
+    setOnPointerEnter(callback: PointerEventCallback): void;
+    setOnPointerCancel(callback: PointerEventCallback): void;
+    setOnPointerOutOfBounds(callback: PointerEventCallback): void;
+    setOnPointerMoveOver(callback: PointerEventCallback): void;
+    setOnPointerMoveOut(callback: PointerEventCallback): void;
+    protected markAsInBounds(pointerId: number): void;
+    protected markAsOutOfBounds(pointerId: number): void;
+    resetManager(): void;
+}
+export {};

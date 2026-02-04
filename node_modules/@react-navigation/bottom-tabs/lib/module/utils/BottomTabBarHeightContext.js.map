@@ -1,0 +1,1 @@
+{"version":3,"names":["React","BottomTabBarHeightContext","createContext","undefined"],"sourceRoot":"../../../src","sources":["utils/BottomTabBarHeightContext.tsx"],"mappings":";;AAAA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAE9B,OAAO,MAAMC,yBAAyB,gBAAGD,KAAK,CAACE,aAAa,CAE1DC,SAAS,CAAC","ignoreList":[]}

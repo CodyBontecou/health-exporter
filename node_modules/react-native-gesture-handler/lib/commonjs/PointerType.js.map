@@ -1,0 +1,1 @@
+{"version":3,"sources":["PointerType.ts"],"names":["PointerType"],"mappings":";;;;;;IAAYA,W;;;WAAAA,W;AAAAA,EAAAA,W,CAAAA,W;AAAAA,EAAAA,W,CAAAA,W;AAAAA,EAAAA,W,CAAAA,W;AAAAA,EAAAA,W,CAAAA,W;AAAAA,EAAAA,W,CAAAA,W;GAAAA,W,2BAAAA,W","sourcesContent":["export enum PointerType {\n  TOUCH,\n  STYLUS,\n  MOUSE,\n  KEY,\n  OTHER,\n}\n"]}
