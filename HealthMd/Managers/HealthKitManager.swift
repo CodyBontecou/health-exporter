@@ -176,6 +176,11 @@ final class HealthKitManager: ObservableObject {
         if let mindful = HKCategoryType.categoryType(forIdentifier: .mindfulSession) {
             types.insert(mindful)
         }
+        
+        // State of Mind (iOS 18+)
+        if #available(iOS 18.0, *) {
+            types.insert(HKSampleType.stateOfMindType())
+        }
 
         // Mobility
         if let walkingSpeed = HKQuantityType.quantityType(forIdentifier: .walkingSpeed) {
@@ -999,8 +1004,123 @@ final class HealthKitManager: ObservableObject {
                 mindfulnessData.mindfulMinutes = totalMinutes
             }
         }
+        
+        // State of Mind (iOS 18+)
+        if #available(iOS 18.0, *) {
+            let stateOfMindEntries = try await fetchStateOfMindData(for: date)
+            mindfulnessData.stateOfMind = stateOfMindEntries
+        }
 
         return mindfulnessData
+    }
+    
+    // MARK: - State of Mind Data (iOS 18+)
+    
+    @available(iOS 18.0, *)
+    private func fetchStateOfMindData(for date: Date) async throws -> [StateOfMindEntry] {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay)
+        
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.stateOfMind(predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate)]
+        )
+        
+        let samples = try await descriptor.result(for: healthStore)
+        
+        return samples.map { sample in
+            // Convert HKStateOfMind.Kind to our enum
+            let kind: StateOfMindEntry.StateOfMindKind = {
+                switch sample.kind {
+                case .momentaryEmotion:
+                    return .momentaryEmotion
+                case .dailyMood:
+                    return .dailyMood
+                @unknown default:
+                    return .momentaryEmotion
+                }
+            }()
+            
+            // Convert labels to readable strings
+            let labels = sample.labels.map { label -> String in
+                switch label {
+                case .amazed: return "Amazed"
+                case .amused: return "Amused"
+                case .angry: return "Angry"
+                case .anxious: return "Anxious"
+                case .ashamed: return "Ashamed"
+                case .brave: return "Brave"
+                case .calm: return "Calm"
+                case .confident: return "Confident"
+                case .content: return "Content"
+                case .disappointed: return "Disappointed"
+                case .discouraged: return "Discouraged"
+                case .disgusted: return "Disgusted"
+                case .drained: return "Drained"
+                case .embarrassed: return "Embarrassed"
+                case .excited: return "Excited"
+                case .frustrated: return "Frustrated"
+                case .grateful: return "Grateful"
+                case .guilty: return "Guilty"
+                case .happy: return "Happy"
+                case .hopeful: return "Hopeful"
+                case .hopeless: return "Hopeless"
+                case .indifferent: return "Indifferent"
+                case .irritated: return "Irritated"
+                case .jealous: return "Jealous"
+                case .joyful: return "Joyful"
+                case .lonely: return "Lonely"
+                case .overwhelmed: return "Overwhelmed"
+                case .passionate: return "Passionate"
+                case .peaceful: return "Peaceful"
+                case .proud: return "Proud"
+                case .relieved: return "Relieved"
+                case .sad: return "Sad"
+                case .satisfied: return "Satisfied"
+                case .scared: return "Scared"
+                case .stressed: return "Stressed"
+                case .surprised: return "Surprised"
+                case .worried: return "Worried"
+                @unknown default: return "Unknown"
+                }
+            }
+            
+            // Convert associations to readable strings
+            let associations = sample.associations.map { association -> String in
+                switch association {
+                case .community: return "Community"
+                case .currentEvents: return "Current Events"
+                case .dating: return "Dating"
+                case .education: return "Education"
+                case .family: return "Family"
+                case .fitness: return "Fitness"
+                case .friends: return "Friends"
+                case .health: return "Health"
+                case .hobbies: return "Hobbies"
+                case .identity: return "Identity"
+                case .money: return "Money"
+                case .partner: return "Partner"
+                case .selfCare: return "Self Care"
+                case .spirituality: return "Spirituality"
+                case .tasks: return "Tasks"
+                case .travel: return "Travel"
+                case .weather: return "Weather"
+                case .work: return "Work"
+                @unknown default: return "Unknown"
+                }
+            }
+            
+            return StateOfMindEntry(
+                timestamp: sample.startDate,
+                kind: kind,
+                valence: sample.valence,
+                labels: labels,
+                associations: associations
+            )
+        }
     }
 
     // MARK: - Mobility Data

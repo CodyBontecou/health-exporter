@@ -117,9 +117,96 @@ struct NutritionData {
 struct MindfulnessData {
     var mindfulMinutes: Double?
     var mindfulSessions: Int?
+    var stateOfMind: [StateOfMindEntry] = []
 
     var hasData: Bool {
-        mindfulMinutes != nil || mindfulSessions != nil
+        mindfulMinutes != nil || mindfulSessions != nil || !stateOfMind.isEmpty
+    }
+    
+    // Computed properties for State of Mind analysis
+    var dailyMoods: [StateOfMindEntry] {
+        stateOfMind.filter { $0.kind == .dailyMood }
+    }
+    
+    var momentaryEmotions: [StateOfMindEntry] {
+        stateOfMind.filter { $0.kind == .momentaryEmotion }
+    }
+    
+    var averageValence: Double? {
+        guard !stateOfMind.isEmpty else { return nil }
+        let total = stateOfMind.reduce(0.0) { $0 + $1.valence }
+        return total / Double(stateOfMind.count)
+    }
+    
+    var averageDailyMoodValence: Double? {
+        guard !dailyMoods.isEmpty else { return nil }
+        let total = dailyMoods.reduce(0.0) { $0 + $1.valence }
+        return total / Double(dailyMoods.count)
+    }
+    
+    var allLabels: [String] {
+        Array(Set(stateOfMind.flatMap { $0.labels })).sorted()
+    }
+    
+    var allAssociations: [String] {
+        Array(Set(stateOfMind.flatMap { $0.associations })).sorted()
+    }
+}
+
+// MARK: - State of Mind Entry
+
+struct StateOfMindEntry: Identifiable {
+    let id = UUID()
+    let timestamp: Date
+    let kind: StateOfMindKind
+    let valence: Double  // -1.0 (very unpleasant) to 1.0 (very pleasant)
+    let labels: [String]  // Emotion/mood labels like "Happy", "Anxious", etc.
+    let associations: [String]  // Context like "Work", "Exercise", "Family", etc.
+    
+    enum StateOfMindKind: String {
+        case momentaryEmotion = "Momentary Emotion"
+        case dailyMood = "Daily Mood"
+    }
+    
+    /// Converts valence (-1 to 1) to a human-readable description
+    var valenceDescription: String {
+        switch valence {
+        case -1.0 ..< -0.6:
+            return "Very Unpleasant"
+        case -0.6 ..< -0.2:
+            return "Unpleasant"
+        case -0.2 ..< 0.2:
+            return "Neutral"
+        case 0.2 ..< 0.6:
+            return "Pleasant"
+        case 0.6 ... 1.0:
+            return "Very Pleasant"
+        default:
+            return "Unknown"
+        }
+    }
+    
+    /// Converts valence to a percentage (0-100)
+    var valencePercent: Int {
+        Int(((valence + 1.0) / 2.0) * 100)
+    }
+    
+    /// Returns an emoji representation of the valence
+    var valenceEmoji: String {
+        switch valence {
+        case -1.0 ..< -0.6:
+            return "😢"
+        case -0.6 ..< -0.2:
+            return "😔"
+        case -0.2 ..< 0.2:
+            return "😐"
+        case 0.2 ..< 0.6:
+            return "🙂"
+        case 0.6 ... 1.0:
+            return "😊"
+        default:
+            return "❓"
+        }
     }
 }
 
@@ -351,6 +438,11 @@ extension HealthData {
             if !workouts.isEmpty {
                 summaryParts.append("\(workouts.count) workout\(workouts.count > 1 ? "s" : "")")
             }
+            if let avgValence = mindfulness.averageValence {
+                let valencePercent = Int(((avgValence + 1.0) / 2.0) * 100)
+                let moodEmoji = template.useEmoji ? (avgValence >= 0.2 ? "🙂" : avgValence <= -0.2 ? "😔" : "😐") + " " : ""
+                summaryParts.append("\(moodEmoji)mood \(valencePercent)%")
+            }
             if !summaryParts.isEmpty {
                 markdown += "\n" + summaryParts.joined(separator: " · ") + "\n"
             }
@@ -530,6 +622,51 @@ extension HealthData {
             if let sessions = mindfulness.mindfulSessions {
                 markdown += "\(bullet) **Sessions:** \(sessions)\n"
             }
+            
+            // State of Mind data
+            if !mindfulness.stateOfMind.isEmpty {
+                markdown += "\n"
+                
+                // Summary stats
+                if let avgValence = mindfulness.averageValence {
+                    let valencePercent = Int(((avgValence + 1.0) / 2.0) * 100)
+                    markdown += "\(bullet) **Average Mood:** \(valencePercent)% (\(valenceDescription(avgValence)))\n"
+                }
+                
+                if !mindfulness.dailyMoods.isEmpty {
+                    markdown += "\(bullet) **Daily Mood Entries:** \(mindfulness.dailyMoods.count)\n"
+                }
+                
+                if !mindfulness.momentaryEmotions.isEmpty {
+                    markdown += "\(bullet) **Momentary Emotions:** \(mindfulness.momentaryEmotions.count)\n"
+                }
+                
+                // List all unique labels
+                if !mindfulness.allLabels.isEmpty {
+                    markdown += "\(bullet) **Emotions/Moods:** \(mindfulness.allLabels.joined(separator: ", "))\n"
+                }
+                
+                // List all unique associations
+                if !mindfulness.allAssociations.isEmpty {
+                    markdown += "\(bullet) **Associated With:** \(mindfulness.allAssociations.joined(separator: ", "))\n"
+                }
+                
+                // Detailed entries (if template allows)
+                if template.includeSummary && mindfulness.stateOfMind.count <= 5 {
+                    let subHeaderPrefix = String(repeating: "#", count: template.sectionHeaderLevel + 1)
+                    markdown += "\n\(subHeaderPrefix) Mood Entries\n\n"
+                    
+                    for entry in mindfulness.stateOfMind {
+                        let timeStr = config.timeFormat.format(date: entry.timestamp)
+                        let emoji = template.useEmoji ? entry.valenceEmoji + " " : ""
+                        markdown += "\(bullet) **\(timeStr)** \(emoji)(\(entry.kind.rawValue)): \(entry.valencePercent)%"
+                        if !entry.labels.isEmpty {
+                            markdown += " — \(entry.labels.joined(separator: ", "))"
+                        }
+                        markdown += "\n"
+                    }
+                }
+            }
         }
 
         // Mobility Section
@@ -621,6 +758,23 @@ extension HealthData {
             return String(format: "%.1f km", meters / 1000)
         }
         return "\(Int(meters)) m"
+    }
+    
+    private func valenceDescription(_ valence: Double) -> String {
+        switch valence {
+        case -1.0 ..< -0.6:
+            return "Very Unpleasant"
+        case -0.6 ..< -0.2:
+            return "Unpleasant"
+        case -0.2 ..< 0.2:
+            return "Neutral"
+        case 0.2 ..< 0.6:
+            return "Pleasant"
+        case 0.6 ... 1.0:
+            return "Very Pleasant"
+        default:
+            return "Unknown"
+        }
     }
 }
 
@@ -831,6 +985,55 @@ extension HealthData {
             if let sessions = mindfulness.mindfulSessions {
                 mindfulnessDict["mindfulSessions"] = sessions
             }
+            
+            // State of Mind data
+            if !mindfulness.stateOfMind.isEmpty {
+                mindfulnessDict["stateOfMindCount"] = mindfulness.stateOfMind.count
+                
+                if let avgValence = mindfulness.averageValence {
+                    mindfulnessDict["averageValence"] = avgValence
+                    mindfulnessDict["averageValencePercent"] = Int(((avgValence + 1.0) / 2.0) * 100)
+                }
+                
+                if !mindfulness.dailyMoods.isEmpty {
+                    mindfulnessDict["dailyMoodCount"] = mindfulness.dailyMoods.count
+                    if let avgDailyValence = mindfulness.averageDailyMoodValence {
+                        mindfulnessDict["averageDailyMoodValence"] = avgDailyValence
+                    }
+                }
+                
+                if !mindfulness.momentaryEmotions.isEmpty {
+                    mindfulnessDict["momentaryEmotionCount"] = mindfulness.momentaryEmotions.count
+                }
+                
+                if !mindfulness.allLabels.isEmpty {
+                    mindfulnessDict["emotionLabels"] = mindfulness.allLabels
+                }
+                
+                if !mindfulness.allAssociations.isEmpty {
+                    mindfulnessDict["associations"] = mindfulness.allAssociations
+                }
+                
+                // Individual entries
+                let entriesArray = mindfulness.stateOfMind.map { entry -> [String: Any] in
+                    var entryDict: [String: Any] = [
+                        "timestamp": config.timeFormat.format(date: entry.timestamp),
+                        "kind": entry.kind.rawValue,
+                        "valence": entry.valence,
+                        "valencePercent": entry.valencePercent,
+                        "valenceDescription": entry.valenceDescription
+                    ]
+                    if !entry.labels.isEmpty {
+                        entryDict["labels"] = entry.labels
+                    }
+                    if !entry.associations.isEmpty {
+                        entryDict["associations"] = entry.associations
+                    }
+                    return entryDict
+                }
+                mindfulnessDict["stateOfMindEntries"] = entriesArray
+            }
+            
             json["mindfulness"] = mindfulnessDict
         }
 
@@ -1091,6 +1294,40 @@ extension HealthData {
             }
             if let sessions = mindfulness.mindfulSessions {
                 csv += "\(dateString),Mindfulness,Mindful Sessions,\(sessions),count\n"
+            }
+            
+            // State of Mind data
+            if !mindfulness.stateOfMind.isEmpty {
+                csv += "\(dateString),Mindfulness,State of Mind Entries,\(mindfulness.stateOfMind.count),count\n"
+                
+                if let avgValence = mindfulness.averageValence {
+                    csv += "\(dateString),Mindfulness,Average Mood Valence,\(String(format: "%.2f", avgValence)),scale(-1 to 1)\n"
+                    let valencePercent = Int(((avgValence + 1.0) / 2.0) * 100)
+                    csv += "\(dateString),Mindfulness,Average Mood Percent,\(valencePercent),percent\n"
+                }
+                
+                if !mindfulness.dailyMoods.isEmpty {
+                    csv += "\(dateString),Mindfulness,Daily Mood Count,\(mindfulness.dailyMoods.count),count\n"
+                }
+                
+                if !mindfulness.momentaryEmotions.isEmpty {
+                    csv += "\(dateString),Mindfulness,Momentary Emotion Count,\(mindfulness.momentaryEmotions.count),count\n"
+                }
+                
+                // Individual entries
+                for entry in mindfulness.stateOfMind {
+                    let timeStr = config.timeFormat.format(date: entry.timestamp)
+                    let labelsStr = entry.labels.joined(separator: "; ").replacingOccurrences(of: ",", with: ";")
+                    let associationsStr = entry.associations.joined(separator: "; ").replacingOccurrences(of: ",", with: ";")
+                    
+                    csv += "\(dateString),State of Mind,\(entry.kind.rawValue) at \(timeStr),\(String(format: "%.2f", entry.valence)),valence\n"
+                    if !labelsStr.isEmpty {
+                        csv += "\(dateString),State of Mind,\(entry.kind.rawValue) Labels at \(timeStr),\"\(labelsStr)\",labels\n"
+                    }
+                    if !associationsStr.isEmpty {
+                        csv += "\(dateString),State of Mind,\(entry.kind.rawValue) Associations at \(timeStr),\"\(associationsStr)\",associations\n"
+                    }
+                }
             }
         }
 
@@ -1358,6 +1595,41 @@ extension HealthData {
             if let sessions = mindfulness.mindfulSessions {
                 addField("mindful_sessions", "\(sessions)")
             }
+            
+            // State of Mind metrics
+            if !mindfulness.stateOfMind.isEmpty {
+                addField("mood_entries", "\(mindfulness.stateOfMind.count)")
+                
+                if let avgValence = mindfulness.averageValence {
+                    addField("average_mood_valence", String(format: "%.2f", avgValence))
+                    let valencePercent = Int(((avgValence + 1.0) / 2.0) * 100)
+                    addField("average_mood_percent", "\(valencePercent)")
+                }
+                
+                if !mindfulness.dailyMoods.isEmpty {
+                    addField("daily_mood_count", "\(mindfulness.dailyMoods.count)")
+                    if let avgDailyValence = mindfulness.averageDailyMoodValence {
+                        let dailyPercent = Int(((avgDailyValence + 1.0) / 2.0) * 100)
+                        addField("daily_mood_percent", "\(dailyPercent)")
+                    }
+                }
+                
+                if !mindfulness.momentaryEmotions.isEmpty {
+                    addField("momentary_emotion_count", "\(mindfulness.momentaryEmotions.count)")
+                }
+                
+                // Labels as tags
+                if !mindfulness.allLabels.isEmpty {
+                    let labelTags = mindfulness.allLabels.map { $0.lowercased().replacingOccurrences(of: " ", with: "-") }
+                    addField("mood_labels", "[\(labelTags.joined(separator: ", "))]")
+                }
+                
+                // Associations as tags
+                if !mindfulness.allAssociations.isEmpty {
+                    let associationTags = mindfulness.allAssociations.map { $0.lowercased().replacingOccurrences(of: " ", with: "-") }
+                    addField("mood_associations", "[\(associationTags.joined(separator: ", "))]")
+                }
+            }
         }
 
         // Mobility metrics
@@ -1447,6 +1719,11 @@ extension HealthData {
 
         if let minutes = mindfulness.mindfulMinutes, minutes > 0 {
             summaryItems.append("\(Int(minutes)) mindful min")
+        }
+        
+        if let avgValence = mindfulness.averageValence {
+            let valencePercent = Int(((avgValence + 1.0) / 2.0) * 100)
+            summaryItems.append("mood: \(valencePercent)%")
         }
 
         if !workouts.isEmpty {

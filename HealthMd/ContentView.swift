@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @EnvironmentObject var healthKitManager: HealthKitManager
@@ -298,6 +299,8 @@ struct ExportTabView: View {
     @Binding var showExportModal: Bool
     @Binding var showFolderPicker: Bool
     let canExport: Bool
+    
+    @State private var showHealthPermissionsGuide = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -358,11 +361,17 @@ struct ExportTabView: View {
                         icon: "heart.fill",
                         title: "Health",
                         isConnected: healthKitManager.isAuthorized,
-                        action: !healthKitManager.isAuthorized ? {
-                            Task {
-                                try? await healthKitManager.requestAuthorization()
+                        action: {
+                            if healthKitManager.isAuthorized {
+                                // Already authorized - show guide to adjust permissions
+                                showHealthPermissionsGuide = true
+                            } else {
+                                // Not yet authorized - show permission sheet
+                                Task {
+                                    try? await healthKitManager.requestAuthorization()
+                                }
                             }
-                        } : nil
+                        }
                     )
 
                     CompactStatusBadge(
@@ -409,6 +418,16 @@ struct ExportTabView: View {
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.bottom, Spacing.xl)
+        }
+        .alert("Adjust Health Permissions", isPresented: $showHealthPermissionsGuide) {
+            Button("Open Health App") {
+                if let healthURL = URL(string: "x-apple-health://") {
+                    UIApplication.shared.open(healthURL)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("To change which health data Health.md can access:\n\n1. Tap \"Open Health App\"\n2. Tap your profile icon (top right)\n3. Tap \"Apps\"\n4. Select \"Health.md\"\n5. Toggle permissions on or off")
         }
     }
 }

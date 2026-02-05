@@ -267,6 +267,11 @@ struct HealthMetrics {
     static let mindfulness: [HealthMetricDefinition] = [
         HealthMetricDefinition(id: "mindful_minutes", name: "Mindful Minutes", category: .mindfulness, unit: "min", healthKitIdentifier: "HKCategoryTypeIdentifierMindfulSession", metricType: .category, aggregation: .duration),
         HealthMetricDefinition(id: "mindful_sessions", name: "Mindful Sessions", category: .mindfulness, unit: "sessions", healthKitIdentifier: "HKCategoryTypeIdentifierMindfulSession", metricType: .category, aggregation: .count),
+        // State of Mind metrics (iOS 17+)
+        HealthMetricDefinition(id: "state_of_mind_entries", name: "Mood Entries", category: .mindfulness, unit: "entries", healthKitIdentifier: "HKStateOfMind", metricType: .category, aggregation: .count),
+        HealthMetricDefinition(id: "daily_mood", name: "Daily Mood", category: .mindfulness, unit: "", healthKitIdentifier: "HKStateOfMind", metricType: .category, aggregation: .mostRecent),
+        HealthMetricDefinition(id: "average_valence", name: "Average Mood Valence", category: .mindfulness, unit: "", healthKitIdentifier: "HKStateOfMind", metricType: .category, aggregation: .discreteAvg),
+        HealthMetricDefinition(id: "momentary_emotions", name: "Momentary Emotions", category: .mindfulness, unit: "entries", healthKitIdentifier: "HKStateOfMind", metricType: .category, aggregation: .count),
     ]
 
     // MARK: - Reproductive Health
