@@ -37,7 +37,7 @@ Carthage/Build/
 .expo/
 
 # Local/duplicate asset folders
-AppIcon.appiconset/
+# AppIcon.appiconset/  # Removed - needed for builds
 
 # Test targets (if not needed in version control)
 HealthToObsidianAppUITests2/
