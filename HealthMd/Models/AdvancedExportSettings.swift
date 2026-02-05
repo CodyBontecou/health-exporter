@@ -38,6 +38,59 @@ enum ExportFormat: String, CaseIterable, Codable {
     }
 }
 
+// MARK: - Format Customization Settings
+
+class FormatCustomization: ObservableObject, Codable {
+    @Published var dateFormat: DateFormatPreference
+    @Published var timeFormat: TimeFormatPreference
+    @Published var unitPreference: UnitPreference
+    @Published var frontmatterConfig: FrontmatterConfiguration
+    @Published var markdownTemplate: MarkdownTemplateConfig
+    
+    enum CodingKeys: String, CodingKey {
+        case dateFormat, timeFormat, unitPreference, frontmatterConfig, markdownTemplate
+    }
+    
+    init() {
+        self.dateFormat = .iso8601
+        self.timeFormat = .hour24
+        self.unitPreference = .metric
+        self.frontmatterConfig = FrontmatterConfiguration()
+        self.markdownTemplate = MarkdownTemplateConfig()
+    }
+    
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        dateFormat = try container.decodeIfPresent(DateFormatPreference.self, forKey: .dateFormat) ?? .iso8601
+        timeFormat = try container.decodeIfPresent(TimeFormatPreference.self, forKey: .timeFormat) ?? .hour24
+        unitPreference = try container.decodeIfPresent(UnitPreference.self, forKey: .unitPreference) ?? .metric
+        frontmatterConfig = try container.decodeIfPresent(FrontmatterConfiguration.self, forKey: .frontmatterConfig) ?? FrontmatterConfiguration()
+        markdownTemplate = try container.decodeIfPresent(MarkdownTemplateConfig.self, forKey: .markdownTemplate) ?? MarkdownTemplateConfig()
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(dateFormat, forKey: .dateFormat)
+        try container.encode(timeFormat, forKey: .timeFormat)
+        try container.encode(unitPreference, forKey: .unitPreference)
+        try container.encode(frontmatterConfig, forKey: .frontmatterConfig)
+        try container.encode(markdownTemplate, forKey: .markdownTemplate)
+    }
+    
+    func reset() {
+        dateFormat = .iso8601
+        timeFormat = .hour24
+        unitPreference = .metric
+        frontmatterConfig.reset()
+        markdownTemplate = MarkdownTemplateConfig()
+    }
+    
+    /// Get a configured unit converter
+    var unitConverter: UnitConverter {
+        UnitConverter(preference: unitPreference)
+    }
+}
+
 // Legacy DataTypeSelection - kept for backwards compatibility during migration
 struct DataTypeSelection: Codable {
     var sleep: Bool = true
@@ -169,6 +222,11 @@ class AdvancedExportSettings: ObservableObject {
     @Published var writeMode: WriteMode {
         didSet { save() }
     }
+    
+    // Format customization settings
+    @Published var formatCustomization: FormatCustomization {
+        didSet { saveFormatCustomization() }
+    }
 
     private let userDefaults = UserDefaults.standard
     private let dataTypesKey = "advancedExportSettings.dataTypes"
@@ -179,6 +237,7 @@ class AdvancedExportSettings: ObservableObject {
     private let filenameFormatKey = "advancedExportSettings.filenameFormat"
     private let folderStructureKey = "advancedExportSettings.folderStructure"
     private let writeModeKey = "advancedExportSettings.writeMode"
+    private let formatCustomizationKey = "advancedExportSettings.formatCustomization"
 
     static let defaultFilenameFormat = "{date}"
     static let defaultFolderStructure = ""  // Empty = flat structure
@@ -288,11 +347,25 @@ class AdvancedExportSettings: ObservableObject {
         } else {
             self.writeMode = .overwrite // Default to overwrite for backwards compatibility
         }
+        
+        // Load format customization
+        if let data = userDefaults.data(forKey: formatCustomizationKey),
+           let decoded = try? JSONDecoder().decode(FormatCustomization.self, from: data) {
+            self.formatCustomization = decoded
+        } else {
+            self.formatCustomization = FormatCustomization()
+        }
     }
 
     private func saveMetricSelection() {
         if let encoded = try? JSONEncoder().encode(metricSelection) {
             userDefaults.set(encoded, forKey: metricSelectionKey)
+        }
+    }
+    
+    private func saveFormatCustomization() {
+        if let encoded = try? JSONEncoder().encode(formatCustomization) {
+            userDefaults.set(encoded, forKey: formatCustomizationKey)
         }
     }
 
@@ -330,6 +403,7 @@ class AdvancedExportSettings: ObservableObject {
         filenameFormat = Self.defaultFilenameFormat
         folderStructure = Self.defaultFolderStructure
         writeMode = .overwrite
+        formatCustomization = FormatCustomization()
     }
 
     /// Check if a specific metric is enabled for export

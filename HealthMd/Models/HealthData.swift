@@ -240,19 +240,21 @@ struct HealthData {
 extension HealthData {
     func export(format: ExportFormat, settings: AdvancedExportSettings) -> String {
         let filteredData = self.filtered(by: settings.dataTypes)
+        let formatCustomization = settings.formatCustomization
 
         switch format {
         case .markdown:
             return filteredData.toMarkdown(
                 includeMetadata: settings.includeMetadata,
-                groupByCategory: settings.groupByCategory
+                groupByCategory: settings.groupByCategory,
+                customization: formatCustomization
             )
         case .obsidianBases:
-            return filteredData.toObsidianBases()
+            return filteredData.toObsidianBases(customization: formatCustomization)
         case .json:
-            return filteredData.toJSON()
+            return filteredData.toJSON(customization: formatCustomization)
         case .csv:
-            return filteredData.toCSV()
+            return filteredData.toCSV(customization: formatCustomization)
         }
     }
 
@@ -297,253 +299,291 @@ extension HealthData {
 // MARK: - Markdown Export
 
 extension HealthData {
-    func toMarkdown(includeMetadata: Bool = true, groupByCategory: Bool = true) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let dateString = dateFormatter.string(from: date)
+    func toMarkdown(includeMetadata: Bool = true, groupByCategory: Bool = true, customization: FormatCustomization? = nil) -> String {
+        let config = customization ?? FormatCustomization()
+        let dateString = config.dateFormat.format(date: date)
+        let converter = config.unitConverter
+        let template = config.markdownTemplate
+        let bullet = template.bulletStyle.rawValue
+        let headerPrefix = String(repeating: "#", count: template.sectionHeaderLevel)
+        
+        // Emoji prefixes based on settings
+        let sleepEmoji = template.useEmoji ? "😴 " : ""
+        let activityEmoji = template.useEmoji ? "🏃 " : ""
+        let heartEmoji = template.useEmoji ? "❤️ " : ""
+        let vitalsEmoji = template.useEmoji ? "🩺 " : ""
+        let bodyEmoji = template.useEmoji ? "📏 " : ""
+        let nutritionEmoji = template.useEmoji ? "🍎 " : ""
+        let mindfulnessEmoji = template.useEmoji ? "🧘 " : ""
+        let mobilityEmoji = template.useEmoji ? "🚶 " : ""
+        let hearingEmoji = template.useEmoji ? "👂 " : ""
+        let workoutsEmoji = template.useEmoji ? "💪 " : ""
 
         var markdown = ""
 
         if includeMetadata {
-            markdown += """
-            ---
-            date: \(dateString)
-            type: health-data
-            ---
-
-            """
+            let fmConfig = config.frontmatterConfig
+            markdown += "---\n"
+            if fmConfig.includeDate {
+                markdown += "\(fmConfig.customDateKey): \(dateString)\n"
+            }
+            if fmConfig.includeType {
+                markdown += "\(fmConfig.customTypeKey): \(fmConfig.customTypeValue)\n"
+            }
+            // Add custom static fields
+            for (key, value) in fmConfig.customFields.sorted(by: { $0.key < $1.key }) {
+                markdown += "\(key): \(value)\n"
+            }
+            markdown += "---\n\n"
         }
 
-        markdown += "# Health Data — \(dateString)\n\n"
+        markdown += "# Health Data — \(dateString)\n"
+        
+        // Summary section
+        if template.includeSummary {
+            var summaryParts: [String] = []
+            if sleep.totalDuration > 0 {
+                summaryParts.append(formatDuration(sleep.totalDuration) + " sleep")
+            }
+            if let steps = activity.steps {
+                summaryParts.append(formatNumber(steps) + " steps")
+            }
+            if !workouts.isEmpty {
+                summaryParts.append("\(workouts.count) workout\(workouts.count > 1 ? "s" : "")")
+            }
+            if !summaryParts.isEmpty {
+                markdown += "\n" + summaryParts.joined(separator: " · ") + "\n"
+            }
+        }
 
         // Sleep Section
         if sleep.hasData {
-            markdown += "\n## Sleep\n\n"
+            markdown += "\n\(headerPrefix) \(sleepEmoji)Sleep\n\n"
             if sleep.totalDuration > 0 {
-                markdown += "- **Total:** \(formatDuration(sleep.totalDuration))\n"
+                markdown += "\(bullet) **Total:** \(formatDuration(sleep.totalDuration))\n"
             }
             if sleep.inBedTime > 0 {
-                markdown += "- **In Bed:** \(formatDuration(sleep.inBedTime))\n"
+                markdown += "\(bullet) **In Bed:** \(formatDuration(sleep.inBedTime))\n"
             }
             if sleep.deepSleep > 0 {
-                markdown += "- **Deep:** \(formatDuration(sleep.deepSleep))\n"
+                markdown += "\(bullet) **Deep:** \(formatDuration(sleep.deepSleep))\n"
             }
             if sleep.remSleep > 0 {
-                markdown += "- **REM:** \(formatDuration(sleep.remSleep))\n"
+                markdown += "\(bullet) **REM:** \(formatDuration(sleep.remSleep))\n"
             }
             if sleep.coreSleep > 0 {
-                markdown += "- **Core:** \(formatDuration(sleep.coreSleep))\n"
+                markdown += "\(bullet) **Core:** \(formatDuration(sleep.coreSleep))\n"
             }
             if sleep.awakeTime > 0 {
-                markdown += "- **Awake:** \(formatDuration(sleep.awakeTime))\n"
+                markdown += "\(bullet) **Awake:** \(formatDuration(sleep.awakeTime))\n"
             }
         }
 
         // Activity Section
         if activity.hasData {
-            markdown += "\n## Activity\n\n"
+            markdown += "\n\(headerPrefix) \(activityEmoji)Activity\n\n"
             if let steps = activity.steps {
-                markdown += "- **Steps:** \(formatNumber(steps))\n"
+                markdown += "\(bullet) **Steps:** \(formatNumber(steps))\n"
             }
             if let calories = activity.activeCalories {
-                markdown += "- **Active Calories:** \(formatNumber(Int(calories))) kcal\n"
+                markdown += "\(bullet) **Active Calories:** \(formatNumber(Int(calories))) kcal\n"
             }
             if let basal = activity.basalEnergyBurned {
-                markdown += "- **Basal Energy:** \(formatNumber(Int(basal))) kcal\n"
+                markdown += "\(bullet) **Basal Energy:** \(formatNumber(Int(basal))) kcal\n"
             }
             if let exercise = activity.exerciseMinutes {
-                markdown += "- **Exercise:** \(Int(exercise)) min\n"
+                markdown += "\(bullet) **Exercise:** \(Int(exercise)) min\n"
             }
             if let standHours = activity.standHours {
-                markdown += "- **Stand Hours:** \(standHours)\n"
+                markdown += "\(bullet) **Stand Hours:** \(standHours)\n"
             }
             if let flights = activity.flightsClimbed {
-                markdown += "- **Flights Climbed:** \(flights)\n"
+                markdown += "\(bullet) **Flights Climbed:** \(flights)\n"
             }
             if let distance = activity.walkingRunningDistance {
-                markdown += "- **Walking/Running Distance:** \(formatDistance(distance))\n"
+                markdown += "\(bullet) **Walking/Running Distance:** \(converter.formatDistance(distance))\n"
             }
             if let cycling = activity.cyclingDistance {
-                markdown += "- **Cycling Distance:** \(formatDistance(cycling))\n"
+                markdown += "\(bullet) **Cycling Distance:** \(converter.formatDistance(cycling))\n"
             }
             if let swimming = activity.swimmingDistance {
-                markdown += "- **Swimming Distance:** \(formatDistance(swimming))\n"
+                markdown += "\(bullet) **Swimming Distance:** \(converter.formatDistance(swimming))\n"
             }
             if let strokes = activity.swimmingStrokes {
-                markdown += "- **Swimming Strokes:** \(formatNumber(strokes))\n"
+                markdown += "\(bullet) **Swimming Strokes:** \(formatNumber(strokes))\n"
             }
             if let pushes = activity.pushCount {
-                markdown += "- **Wheelchair Pushes:** \(formatNumber(pushes))\n"
+                markdown += "\(bullet) **Wheelchair Pushes:** \(formatNumber(pushes))\n"
             }
         }
 
         // Heart Section
         if heart.hasData {
-            markdown += "\n## Heart\n\n"
+            markdown += "\n\(headerPrefix) \(heartEmoji)Heart\n\n"
             if let hr = heart.restingHeartRate {
-                markdown += "- **Resting HR:** \(Int(hr)) bpm\n"
+                markdown += "\(bullet) **Resting HR:** \(Int(hr)) bpm\n"
             }
             if let walkingHR = heart.walkingHeartRateAverage {
-                markdown += "- **Walking HR Average:** \(Int(walkingHR)) bpm\n"
+                markdown += "\(bullet) **Walking HR Average:** \(Int(walkingHR)) bpm\n"
             }
             if let avgHR = heart.averageHeartRate {
-                markdown += "- **Average HR:** \(Int(avgHR)) bpm\n"
+                markdown += "\(bullet) **Average HR:** \(Int(avgHR)) bpm\n"
             }
             if let minHR = heart.heartRateMin {
-                markdown += "- **Min HR:** \(Int(minHR)) bpm\n"
+                markdown += "\(bullet) **Min HR:** \(Int(minHR)) bpm\n"
             }
             if let maxHR = heart.heartRateMax {
-                markdown += "- **Max HR:** \(Int(maxHR)) bpm\n"
+                markdown += "\(bullet) **Max HR:** \(Int(maxHR)) bpm\n"
             }
             if let hrv = heart.hrv {
-                markdown += "- **HRV:** \(String(format: "%.1f", hrv)) ms\n"
+                markdown += "\(bullet) **HRV:** \(String(format: "%.1f", hrv)) ms\n"
             }
         }
 
         // Vitals Section
         if vitals.hasData {
-            markdown += "\n## Vitals\n\n"
+            markdown += "\n\(headerPrefix) \(vitalsEmoji)Vitals\n\n"
             if let rr = vitals.respiratoryRate {
-                markdown += "- **Respiratory Rate:** \(String(format: "%.1f", rr)) breaths/min\n"
+                markdown += "\(bullet) **Respiratory Rate:** \(String(format: "%.1f", rr)) breaths/min\n"
             }
             if let spo2 = vitals.bloodOxygen {
-                markdown += "- **SpO2:** \(Int(spo2 * 100))%\n"
+                markdown += "\(bullet) **SpO2:** \(Int(spo2 * 100))%\n"
             }
             if let temp = vitals.bodyTemperature {
-                markdown += "- **Body Temperature:** \(String(format: "%.1f", temp))°C\n"
+                markdown += "\(bullet) **Body Temperature:** \(converter.formatTemperature(temp))\n"
             }
             if let systolic = vitals.bloodPressureSystolic, let diastolic = vitals.bloodPressureDiastolic {
-                markdown += "- **Blood Pressure:** \(Int(systolic))/\(Int(diastolic)) mmHg\n"
+                markdown += "\(bullet) **Blood Pressure:** \(Int(systolic))/\(Int(diastolic)) mmHg\n"
             }
             if let glucose = vitals.bloodGlucose {
-                markdown += "- **Blood Glucose:** \(String(format: "%.1f", glucose)) mg/dL\n"
+                markdown += "\(bullet) **Blood Glucose:** \(String(format: "%.1f", glucose)) mg/dL\n"
             }
         }
 
         // Body Section
         if body.hasData {
-            markdown += "\n## Body\n\n"
+            markdown += "\n\(headerPrefix) \(bodyEmoji)Body\n\n"
             if let weight = body.weight {
-                markdown += "- **Weight:** \(String(format: "%.1f", weight)) kg\n"
+                markdown += "\(bullet) **Weight:** \(converter.formatWeight(weight))\n"
             }
             if let height = body.height {
-                markdown += "- **Height:** \(String(format: "%.2f", height)) m\n"
+                markdown += "\(bullet) **Height:** \(converter.formatHeight(height))\n"
             }
             if let bmi = body.bmi {
-                markdown += "- **BMI:** \(String(format: "%.1f", bmi))\n"
+                markdown += "\(bullet) **BMI:** \(String(format: "%.1f", bmi))\n"
             }
             if let bodyFat = body.bodyFatPercentage {
-                markdown += "- **Body Fat:** \(String(format: "%.1f", bodyFat * 100))%\n"
+                markdown += "\(bullet) **Body Fat:** \(String(format: "%.1f", bodyFat * 100))%\n"
             }
             if let lean = body.leanBodyMass {
-                markdown += "- **Lean Body Mass:** \(String(format: "%.1f", lean)) kg\n"
+                markdown += "\(bullet) **Lean Body Mass:** \(converter.formatWeight(lean))\n"
             }
             if let waist = body.waistCircumference {
-                markdown += "- **Waist Circumference:** \(String(format: "%.1f", waist * 100)) cm\n"
+                markdown += "\(bullet) **Waist Circumference:** \(converter.formatLength(waist))\n"
             }
         }
 
         // Nutrition Section
         if nutrition.hasData {
-            markdown += "\n## Nutrition\n\n"
+            markdown += "\n\(headerPrefix) \(nutritionEmoji)Nutrition\n\n"
             if let energy = nutrition.dietaryEnergy {
-                markdown += "- **Calories:** \(formatNumber(Int(energy))) kcal\n"
+                markdown += "\(bullet) **Calories:** \(formatNumber(Int(energy))) kcal\n"
             }
             if let protein = nutrition.protein {
-                markdown += "- **Protein:** \(String(format: "%.1f", protein)) g\n"
+                markdown += "\(bullet) **Protein:** \(String(format: "%.1f", protein)) g\n"
             }
             if let carbs = nutrition.carbohydrates {
-                markdown += "- **Carbohydrates:** \(String(format: "%.1f", carbs)) g\n"
+                markdown += "\(bullet) **Carbohydrates:** \(String(format: "%.1f", carbs)) g\n"
             }
             if let fat = nutrition.fat {
-                markdown += "- **Fat:** \(String(format: "%.1f", fat)) g\n"
+                markdown += "\(bullet) **Fat:** \(String(format: "%.1f", fat)) g\n"
             }
             if let saturatedFat = nutrition.saturatedFat {
-                markdown += "- **Saturated Fat:** \(String(format: "%.1f", saturatedFat)) g\n"
+                markdown += "\(bullet) **Saturated Fat:** \(String(format: "%.1f", saturatedFat)) g\n"
             }
             if let fiber = nutrition.fiber {
-                markdown += "- **Fiber:** \(String(format: "%.1f", fiber)) g\n"
+                markdown += "\(bullet) **Fiber:** \(String(format: "%.1f", fiber)) g\n"
             }
             if let sugar = nutrition.sugar {
-                markdown += "- **Sugar:** \(String(format: "%.1f", sugar)) g\n"
+                markdown += "\(bullet) **Sugar:** \(String(format: "%.1f", sugar)) g\n"
             }
             if let sodium = nutrition.sodium {
-                markdown += "- **Sodium:** \(formatNumber(Int(sodium))) mg\n"
+                markdown += "\(bullet) **Sodium:** \(formatNumber(Int(sodium))) mg\n"
             }
             if let cholesterol = nutrition.cholesterol {
-                markdown += "- **Cholesterol:** \(String(format: "%.1f", cholesterol)) mg\n"
+                markdown += "\(bullet) **Cholesterol:** \(String(format: "%.1f", cholesterol)) mg\n"
             }
             if let water = nutrition.water {
-                markdown += "- **Water:** \(String(format: "%.2f", water)) L\n"
+                markdown += "\(bullet) **Water:** \(converter.formatVolume(water))\n"
             }
             if let caffeine = nutrition.caffeine {
-                markdown += "- **Caffeine:** \(String(format: "%.1f", caffeine)) mg\n"
+                markdown += "\(bullet) **Caffeine:** \(String(format: "%.1f", caffeine)) mg\n"
             }
         }
 
         // Mindfulness Section
         if mindfulness.hasData {
-            markdown += "\n## Mindfulness\n\n"
+            markdown += "\n\(headerPrefix) \(mindfulnessEmoji)Mindfulness\n\n"
             if let minutes = mindfulness.mindfulMinutes {
-                markdown += "- **Mindful Minutes:** \(Int(minutes)) min\n"
+                markdown += "\(bullet) **Mindful Minutes:** \(Int(minutes)) min\n"
             }
             if let sessions = mindfulness.mindfulSessions {
-                markdown += "- **Sessions:** \(sessions)\n"
+                markdown += "\(bullet) **Sessions:** \(sessions)\n"
             }
         }
 
         // Mobility Section
         if mobility.hasData {
-            markdown += "\n## Mobility\n\n"
+            markdown += "\n\(headerPrefix) \(mobilityEmoji)Mobility\n\n"
             if let speed = mobility.walkingSpeed {
-                markdown += "- **Walking Speed:** \(String(format: "%.2f", speed)) m/s\n"
+                markdown += "\(bullet) **Walking Speed:** \(converter.formatSpeed(speed))\n"
             }
             if let stepLength = mobility.walkingStepLength {
-                markdown += "- **Step Length:** \(String(format: "%.2f", stepLength * 100)) cm\n"
+                markdown += "\(bullet) **Step Length:** \(converter.formatLength(stepLength))\n"
             }
             if let doubleSupport = mobility.walkingDoubleSupportPercentage {
-                markdown += "- **Double Support:** \(String(format: "%.1f", doubleSupport * 100))%\n"
+                markdown += "\(bullet) **Double Support:** \(String(format: "%.1f", doubleSupport * 100))%\n"
             }
             if let asymmetry = mobility.walkingAsymmetryPercentage {
-                markdown += "- **Walking Asymmetry:** \(String(format: "%.1f", asymmetry * 100))%\n"
+                markdown += "\(bullet) **Walking Asymmetry:** \(String(format: "%.1f", asymmetry * 100))%\n"
             }
             if let ascent = mobility.stairAscentSpeed {
-                markdown += "- **Stair Ascent Speed:** \(String(format: "%.2f", ascent)) m/s\n"
+                markdown += "\(bullet) **Stair Ascent Speed:** \(converter.formatSpeed(ascent))\n"
             }
             if let descent = mobility.stairDescentSpeed {
-                markdown += "- **Stair Descent Speed:** \(String(format: "%.2f", descent)) m/s\n"
+                markdown += "\(bullet) **Stair Descent Speed:** \(converter.formatSpeed(descent))\n"
             }
             if let sixMin = mobility.sixMinuteWalkDistance {
-                markdown += "- **6-Min Walk Distance:** \(formatDistance(sixMin))\n"
+                markdown += "\(bullet) **6-Min Walk Distance:** \(converter.formatDistance(sixMin))\n"
             }
         }
 
         // Hearing Section
         if hearing.hasData {
-            markdown += "\n## Hearing\n\n"
+            markdown += "\n\(headerPrefix) \(hearingEmoji)Hearing\n\n"
             if let headphone = hearing.headphoneAudioLevel {
-                markdown += "- **Headphone Audio Level:** \(String(format: "%.1f", headphone)) dB\n"
+                markdown += "\(bullet) **Headphone Audio Level:** \(String(format: "%.1f", headphone)) dB\n"
             }
             if let environmental = hearing.environmentalSoundLevel {
-                markdown += "- **Environmental Sound Level:** \(String(format: "%.1f", environmental)) dB\n"
+                markdown += "\(bullet) **Environmental Sound Level:** \(String(format: "%.1f", environmental)) dB\n"
             }
         }
 
         // Workouts Section
         if !workouts.isEmpty {
-            markdown += "\n## Workouts\n"
-            let timeFormatter = DateFormatter()
-            timeFormatter.dateFormat = "HH:mm"
+            markdown += "\n\(headerPrefix) \(workoutsEmoji)Workouts\n"
+            
+            let subHeaderPrefix = String(repeating: "#", count: template.sectionHeaderLevel + 1)
 
             for (index, workout) in workouts.enumerated() {
-                markdown += "\n### \(index + 1). \(workout.workoutTypeName)\n\n"
-                markdown += "- **Time:** \(timeFormatter.string(from: workout.startTime))\n"
-                markdown += "- **Duration:** \(formatDurationShort(workout.duration))\n"
+                markdown += "\n\(subHeaderPrefix) \(index + 1). \(workout.workoutTypeName)\n\n"
+                markdown += "\(bullet) **Time:** \(config.timeFormat.format(date: workout.startTime))\n"
+                markdown += "\(bullet) **Duration:** \(formatDurationShort(workout.duration))\n"
                 if let distance = workout.distance, distance > 0 {
-                    markdown += "- **Distance:** \(formatDistance(distance))\n"
+                    markdown += "\(bullet) **Distance:** \(converter.formatDistance(distance))\n"
                 }
                 if let calories = workout.calories, calories > 0 {
-                    markdown += "- **Calories:** \(Int(calories)) kcal\n"
+                    markdown += "\(bullet) **Calories:** \(Int(calories)) kcal\n"
                 }
             }
         }
@@ -587,17 +627,15 @@ extension HealthData {
 // MARK: - JSON Export
 
 extension HealthData {
-    func toJSON() -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let dateString = dateFormatter.string(from: date)
-
-        let timeFormatter = DateFormatter()
-        timeFormatter.dateFormat = "HH:mm"
+    func toJSON(customization: FormatCustomization? = nil) -> String {
+        let config = customization ?? FormatCustomization()
+        let dateString = config.dateFormat.format(date: date)
+        let converter = config.unitConverter
 
         var json: [String: Any] = [
             "date": dateString,
-            "type": "health-data"
+            "type": "health-data",
+            "units": config.unitPreference.rawValue.lowercased()
         ]
 
         // Sleep
@@ -840,13 +878,13 @@ extension HealthData {
             let workoutsArray = workouts.map { workout in
                 var workoutDict: [String: Any] = [
                     "type": workout.workoutTypeName,
-                    "startTime": timeFormatter.string(from: workout.startTime),
+                    "startTime": config.timeFormat.format(date: workout.startTime),
                     "duration": workout.duration,
                     "durationFormatted": formatDurationShort(workout.duration)
                 ]
                 if let distance = workout.distance, distance > 0 {
                     workoutDict["distance"] = distance
-                    workoutDict["distanceKm"] = distance / 1000
+                    workoutDict["distanceFormatted"] = converter.formatDistance(distance)
                 }
                 if let calories = workout.calories, calories > 0 {
                     workoutDict["calories"] = calories
@@ -869,13 +907,14 @@ extension HealthData {
 // MARK: - CSV Export
 
 extension HealthData {
-    func toCSV() -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let dateString = dateFormatter.string(from: date)
-
-        let timeFormatter = DateFormatter()
-        timeFormatter.dateFormat = "HH:mm"
+    func toCSV(customization: FormatCustomization? = nil) -> String {
+        let config = customization ?? FormatCustomization()
+        let dateString = config.dateFormat.format(date: date)
+        let converter = config.unitConverter
+        
+        let distanceUnit = converter.distanceUnit()
+        let weightUnit = converter.weightUnit()
+        let tempUnit = converter.temperatureUnit()
 
         var csv = "Date,Category,Metric,Value,Unit\n"
 
@@ -969,7 +1008,8 @@ extension HealthData {
                 csv += "\(dateString),Vitals,Blood Oxygen,\(spo2 * 100),percent\n"
             }
             if let temp = vitals.bodyTemperature {
-                csv += "\(dateString),Vitals,Body Temperature,\(temp),celsius\n"
+                let convertedTemp = converter.convertTemperature(temp)
+                csv += "\(dateString),Vitals,Body Temperature,\(String(format: "%.1f", convertedTemp)),\(tempUnit)\n"
             }
             if let systolic = vitals.bloodPressureSystolic {
                 csv += "\(dateString),Vitals,Blood Pressure Systolic,\(systolic),mmHg\n"
@@ -985,10 +1025,12 @@ extension HealthData {
         // Body
         if body.hasData {
             if let weight = body.weight {
-                csv += "\(dateString),Body,Weight,\(weight),kg\n"
+                let convertedWeight = converter.convertWeight(weight)
+                csv += "\(dateString),Body,Weight,\(String(format: "%.1f", convertedWeight)),\(weightUnit)\n"
             }
             if let height = body.height {
-                csv += "\(dateString),Body,Height,\(height),meters\n"
+                let convertedHeight = converter.convertHeight(height)
+                csv += "\(dateString),Body,Height,\(String(format: "%.1f", convertedHeight)),\(converter.heightUnit())\n"
             }
             if let bmi = body.bmi {
                 csv += "\(dateString),Body,BMI,\(bmi),\n"
@@ -997,10 +1039,11 @@ extension HealthData {
                 csv += "\(dateString),Body,Body Fat Percentage,\(bodyFat * 100),percent\n"
             }
             if let lean = body.leanBodyMass {
-                csv += "\(dateString),Body,Lean Body Mass,\(lean),kg\n"
+                let convertedLean = converter.convertWeight(lean)
+                csv += "\(dateString),Body,Lean Body Mass,\(String(format: "%.1f", convertedLean)),\(weightUnit)\n"
             }
             if let waist = body.waistCircumference {
-                csv += "\(dateString),Body,Waist Circumference,\(waist * 100),cm\n"
+                csv += "\(dateString),Body,Waist Circumference,\(converter.formatLength(waist)),\(converter.lengthUnit())\n"
             }
         }
 
@@ -1089,11 +1132,12 @@ extension HealthData {
         // Workouts
         if !workouts.isEmpty {
             for workout in workouts {
-                let startTimeString = timeFormatter.string(from: workout.startTime)
+                let startTimeString = config.timeFormat.format(date: workout.startTime)
                 csv += "\(dateString),Workouts,\(workout.workoutTypeName) Start Time,\(startTimeString),time\n"
                 csv += "\(dateString),Workouts,\(workout.workoutTypeName) Duration,\(workout.duration),seconds\n"
                 if let distance = workout.distance, distance > 0 {
-                    csv += "\(dateString),Workouts,\(workout.workoutTypeName) Distance,\(distance),meters\n"
+                    let convertedDistance = converter.convertDistance(distance)
+                    csv += "\(dateString),Workouts,\(workout.workoutTypeName) Distance,\(String(format: "%.2f", convertedDistance)),\(distanceUnit)\n"
                 }
                 if let calories = workout.calories, calories > 0 {
                     csv += "\(dateString),Workouts,\(workout.workoutTypeName) Calories,\(calories),kcal\n"
@@ -1108,244 +1152,271 @@ extension HealthData {
 // MARK: - Obsidian Bases Export
 
 extension HealthData {
-    func toObsidianBases() -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let dateString = dateFormatter.string(from: date)
+    func toObsidianBases(customization: FormatCustomization? = nil) -> String {
+        let config = customization ?? FormatCustomization()
+        let dateString = config.dateFormat.format(date: date)
+        let fmConfig = config.frontmatterConfig
+        let converter = config.unitConverter
 
         var frontmatter: [String] = []
         frontmatter.append("---")
-        frontmatter.append("date: \(dateString)")
-        frontmatter.append("type: health-data")
+        
+        // Core fields
+        if fmConfig.includeDate {
+            frontmatter.append("\(fmConfig.customDateKey): \(dateString)")
+        }
+        if fmConfig.includeType {
+            frontmatter.append("\(fmConfig.customTypeKey): \(fmConfig.customTypeValue)")
+        }
+        
+        // Custom static fields
+        for (key, value) in fmConfig.customFields.sorted(by: { $0.key < $1.key }) {
+            frontmatter.append("\(key): \(value)")
+        }
+        
+        // Helper to add a field with custom key support
+        func addField(_ originalKey: String, _ value: String) {
+            if let outputKey = fmConfig.outputKey(for: originalKey) {
+                frontmatter.append("\(outputKey): \(value)")
+            }
+        }
 
         // Sleep metrics
         if sleep.hasData {
             if sleep.totalDuration > 0 {
-                frontmatter.append("sleep_total_hours: \(String(format: "%.2f", sleep.totalDuration / 3600))")
+                addField("sleep_total_hours", String(format: "%.2f", sleep.totalDuration / 3600))
             }
             if sleep.deepSleep > 0 {
-                frontmatter.append("sleep_deep_hours: \(String(format: "%.2f", sleep.deepSleep / 3600))")
+                addField("sleep_deep_hours", String(format: "%.2f", sleep.deepSleep / 3600))
             }
             if sleep.remSleep > 0 {
-                frontmatter.append("sleep_rem_hours: \(String(format: "%.2f", sleep.remSleep / 3600))")
+                addField("sleep_rem_hours", String(format: "%.2f", sleep.remSleep / 3600))
             }
             if sleep.coreSleep > 0 {
-                frontmatter.append("sleep_core_hours: \(String(format: "%.2f", sleep.coreSleep / 3600))")
+                addField("sleep_core_hours", String(format: "%.2f", sleep.coreSleep / 3600))
             }
             if sleep.awakeTime > 0 {
-                frontmatter.append("sleep_awake_hours: \(String(format: "%.2f", sleep.awakeTime / 3600))")
+                addField("sleep_awake_hours", String(format: "%.2f", sleep.awakeTime / 3600))
             }
             if sleep.inBedTime > 0 {
-                frontmatter.append("sleep_in_bed_hours: \(String(format: "%.2f", sleep.inBedTime / 3600))")
+                addField("sleep_in_bed_hours", String(format: "%.2f", sleep.inBedTime / 3600))
             }
         }
 
         // Activity metrics
         if activity.hasData {
             if let steps = activity.steps {
-                frontmatter.append("steps: \(steps)")
+                addField("steps", "\(steps)")
             }
             if let calories = activity.activeCalories {
-                frontmatter.append("active_calories: \(Int(calories))")
+                addField("active_calories", "\(Int(calories))")
             }
             if let basal = activity.basalEnergyBurned {
-                frontmatter.append("basal_calories: \(Int(basal))")
+                addField("basal_calories", "\(Int(basal))")
             }
             if let exercise = activity.exerciseMinutes {
-                frontmatter.append("exercise_minutes: \(Int(exercise))")
+                addField("exercise_minutes", "\(Int(exercise))")
             }
             if let standHours = activity.standHours {
-                frontmatter.append("stand_hours: \(standHours)")
+                addField("stand_hours", "\(standHours)")
             }
             if let flights = activity.flightsClimbed {
-                frontmatter.append("flights_climbed: \(flights)")
+                addField("flights_climbed", "\(flights)")
             }
             if let distance = activity.walkingRunningDistance {
-                frontmatter.append("walking_running_km: \(String(format: "%.2f", distance / 1000))")
+                let converted = converter.convertDistance(distance)
+                addField("walking_running_km", String(format: "%.2f", converted))
             }
             if let cycling = activity.cyclingDistance {
-                frontmatter.append("cycling_km: \(String(format: "%.2f", cycling / 1000))")
+                let converted = converter.convertDistance(cycling)
+                addField("cycling_km", String(format: "%.2f", converted))
             }
             if let swimming = activity.swimmingDistance {
-                frontmatter.append("swimming_m: \(Int(swimming))")
+                addField("swimming_m", "\(Int(swimming))")
             }
             if let strokes = activity.swimmingStrokes {
-                frontmatter.append("swimming_strokes: \(strokes)")
+                addField("swimming_strokes", "\(strokes)")
             }
             if let pushes = activity.pushCount {
-                frontmatter.append("wheelchair_pushes: \(pushes)")
+                addField("wheelchair_pushes", "\(pushes)")
             }
         }
 
         // Heart metrics
         if heart.hasData {
             if let hr = heart.restingHeartRate {
-                frontmatter.append("resting_heart_rate: \(Int(hr))")
+                addField("resting_heart_rate", "\(Int(hr))")
             }
             if let walkingHR = heart.walkingHeartRateAverage {
-                frontmatter.append("walking_heart_rate: \(Int(walkingHR))")
+                addField("walking_heart_rate", "\(Int(walkingHR))")
             }
             if let avgHR = heart.averageHeartRate {
-                frontmatter.append("average_heart_rate: \(Int(avgHR))")
+                addField("average_heart_rate", "\(Int(avgHR))")
             }
             if let minHR = heart.heartRateMin {
-                frontmatter.append("heart_rate_min: \(Int(minHR))")
+                addField("heart_rate_min", "\(Int(minHR))")
             }
             if let maxHR = heart.heartRateMax {
-                frontmatter.append("heart_rate_max: \(Int(maxHR))")
+                addField("heart_rate_max", "\(Int(maxHR))")
             }
             if let hrv = heart.hrv {
-                frontmatter.append("hrv_ms: \(String(format: "%.1f", hrv))")
+                addField("hrv_ms", String(format: "%.1f", hrv))
             }
         }
 
         // Vitals metrics
         if vitals.hasData {
             if let rr = vitals.respiratoryRate {
-                frontmatter.append("respiratory_rate: \(String(format: "%.1f", rr))")
+                addField("respiratory_rate", String(format: "%.1f", rr))
             }
             if let spo2 = vitals.bloodOxygen {
-                frontmatter.append("blood_oxygen: \(Int(spo2 * 100))")
+                addField("blood_oxygen", "\(Int(spo2 * 100))")
             }
             if let temp = vitals.bodyTemperature {
-                frontmatter.append("body_temperature: \(String(format: "%.1f", temp))")
+                let converted = converter.convertTemperature(temp)
+                addField("body_temperature", String(format: "%.1f", converted))
             }
             if let systolic = vitals.bloodPressureSystolic {
-                frontmatter.append("blood_pressure_systolic: \(Int(systolic))")
+                addField("blood_pressure_systolic", "\(Int(systolic))")
             }
             if let diastolic = vitals.bloodPressureDiastolic {
-                frontmatter.append("blood_pressure_diastolic: \(Int(diastolic))")
+                addField("blood_pressure_diastolic", "\(Int(diastolic))")
             }
             if let glucose = vitals.bloodGlucose {
-                frontmatter.append("blood_glucose: \(String(format: "%.1f", glucose))")
+                addField("blood_glucose", String(format: "%.1f", glucose))
             }
         }
 
         // Body metrics
         if body.hasData {
             if let weight = body.weight {
-                frontmatter.append("weight_kg: \(String(format: "%.1f", weight))")
+                let converted = converter.convertWeight(weight)
+                addField("weight_kg", String(format: "%.1f", converted))
             }
             if let height = body.height {
-                frontmatter.append("height_m: \(String(format: "%.2f", height))")
+                let converted = converter.convertHeight(height)
+                addField("height_m", String(format: "%.2f", converted))
             }
             if let bmi = body.bmi {
-                frontmatter.append("bmi: \(String(format: "%.1f", bmi))")
+                addField("bmi", String(format: "%.1f", bmi))
             }
             if let bodyFat = body.bodyFatPercentage {
-                frontmatter.append("body_fat_percent: \(String(format: "%.1f", bodyFat * 100))")
+                addField("body_fat_percent", String(format: "%.1f", bodyFat * 100))
             }
             if let lean = body.leanBodyMass {
-                frontmatter.append("lean_body_mass_kg: \(String(format: "%.1f", lean))")
+                let converted = converter.convertWeight(lean)
+                addField("lean_body_mass_kg", String(format: "%.1f", converted))
             }
             if let waist = body.waistCircumference {
-                frontmatter.append("waist_circumference_cm: \(String(format: "%.1f", waist * 100))")
+                addField("waist_circumference_cm", converter.formatLength(waist))
             }
         }
 
         // Nutrition metrics
         if nutrition.hasData {
             if let energy = nutrition.dietaryEnergy {
-                frontmatter.append("dietary_calories: \(Int(energy))")
+                addField("dietary_calories", "\(Int(energy))")
             }
             if let protein = nutrition.protein {
-                frontmatter.append("protein_g: \(String(format: "%.1f", protein))")
+                addField("protein_g", String(format: "%.1f", protein))
             }
             if let carbs = nutrition.carbohydrates {
-                frontmatter.append("carbohydrates_g: \(String(format: "%.1f", carbs))")
+                addField("carbohydrates_g", String(format: "%.1f", carbs))
             }
             if let fat = nutrition.fat {
-                frontmatter.append("fat_g: \(String(format: "%.1f", fat))")
+                addField("fat_g", String(format: "%.1f", fat))
             }
             if let saturatedFat = nutrition.saturatedFat {
-                frontmatter.append("saturated_fat_g: \(String(format: "%.1f", saturatedFat))")
+                addField("saturated_fat_g", String(format: "%.1f", saturatedFat))
             }
             if let fiber = nutrition.fiber {
-                frontmatter.append("fiber_g: \(String(format: "%.1f", fiber))")
+                addField("fiber_g", String(format: "%.1f", fiber))
             }
             if let sugar = nutrition.sugar {
-                frontmatter.append("sugar_g: \(String(format: "%.1f", sugar))")
+                addField("sugar_g", String(format: "%.1f", sugar))
             }
             if let sodium = nutrition.sodium {
-                frontmatter.append("sodium_mg: \(Int(sodium))")
+                addField("sodium_mg", "\(Int(sodium))")
             }
             if let cholesterol = nutrition.cholesterol {
-                frontmatter.append("cholesterol_mg: \(String(format: "%.1f", cholesterol))")
+                addField("cholesterol_mg", String(format: "%.1f", cholesterol))
             }
             if let water = nutrition.water {
-                frontmatter.append("water_l: \(String(format: "%.2f", water))")
+                let converted = converter.convertVolume(water)
+                addField("water_l", String(format: "%.2f", converted))
             }
             if let caffeine = nutrition.caffeine {
-                frontmatter.append("caffeine_mg: \(String(format: "%.1f", caffeine))")
+                addField("caffeine_mg", String(format: "%.1f", caffeine))
             }
         }
 
         // Mindfulness metrics
         if mindfulness.hasData {
             if let minutes = mindfulness.mindfulMinutes {
-                frontmatter.append("mindful_minutes: \(Int(minutes))")
+                addField("mindful_minutes", "\(Int(minutes))")
             }
             if let sessions = mindfulness.mindfulSessions {
-                frontmatter.append("mindful_sessions: \(sessions)")
+                addField("mindful_sessions", "\(sessions)")
             }
         }
 
         // Mobility metrics
         if mobility.hasData {
             if let speed = mobility.walkingSpeed {
-                frontmatter.append("walking_speed: \(String(format: "%.2f", speed))")
+                addField("walking_speed", String(format: "%.2f", speed))
             }
             if let stepLength = mobility.walkingStepLength {
-                frontmatter.append("step_length_cm: \(String(format: "%.1f", stepLength * 100))")
+                addField("step_length_cm", String(format: "%.1f", stepLength * 100))
             }
             if let doubleSupport = mobility.walkingDoubleSupportPercentage {
-                frontmatter.append("double_support_percent: \(String(format: "%.1f", doubleSupport * 100))")
+                addField("double_support_percent", String(format: "%.1f", doubleSupport * 100))
             }
             if let asymmetry = mobility.walkingAsymmetryPercentage {
-                frontmatter.append("walking_asymmetry_percent: \(String(format: "%.1f", asymmetry * 100))")
+                addField("walking_asymmetry_percent", String(format: "%.1f", asymmetry * 100))
             }
             if let ascent = mobility.stairAscentSpeed {
-                frontmatter.append("stair_ascent_speed: \(String(format: "%.2f", ascent))")
+                addField("stair_ascent_speed", String(format: "%.2f", ascent))
             }
             if let descent = mobility.stairDescentSpeed {
-                frontmatter.append("stair_descent_speed: \(String(format: "%.2f", descent))")
+                addField("stair_descent_speed", String(format: "%.2f", descent))
             }
             if let sixMin = mobility.sixMinuteWalkDistance {
-                frontmatter.append("six_min_walk_m: \(Int(sixMin))")
+                addField("six_min_walk_m", "\(Int(sixMin))")
             }
         }
 
         // Hearing metrics
         if hearing.hasData {
             if let headphone = hearing.headphoneAudioLevel {
-                frontmatter.append("headphone_audio_db: \(String(format: "%.1f", headphone))")
+                addField("headphone_audio_db", String(format: "%.1f", headphone))
             }
             if let environmental = hearing.environmentalSoundLevel {
-                frontmatter.append("environmental_sound_db: \(String(format: "%.1f", environmental))")
+                addField("environmental_sound_db", String(format: "%.1f", environmental))
             }
         }
 
         // Workout summary
         if !workouts.isEmpty {
-            frontmatter.append("workout_count: \(workouts.count)")
+            addField("workout_count", "\(workouts.count)")
 
             let totalDuration = workouts.reduce(0.0) { $0 + $1.duration }
-            frontmatter.append("workout_minutes: \(Int(totalDuration / 60))")
+            addField("workout_minutes", "\(Int(totalDuration / 60))")
 
             let totalCalories = workouts.compactMap { $0.calories }.reduce(0.0, +)
             if totalCalories > 0 {
-                frontmatter.append("workout_calories: \(Int(totalCalories))")
+                addField("workout_calories", "\(Int(totalCalories))")
             }
 
             let totalDistance = workouts.compactMap { $0.distance }.reduce(0.0, +)
             if totalDistance > 0 {
-                frontmatter.append("workout_distance_km: \(String(format: "%.2f", totalDistance / 1000))")
+                let converted = converter.convertDistance(totalDistance)
+                addField("workout_distance_km", String(format: "%.2f", converted))
             }
 
             // List workout types as tags
             let workoutTypes = workouts.map { $0.workoutTypeName.lowercased().replacingOccurrences(of: " ", with: "-") }
             let uniqueTypes = Array(Set(workoutTypes))
-            frontmatter.append("workouts: [\(uniqueTypes.joined(separator: ", "))]")
+            addField("workouts", "[\(uniqueTypes.joined(separator: ", "))]")
         }
 
         frontmatter.append("---")

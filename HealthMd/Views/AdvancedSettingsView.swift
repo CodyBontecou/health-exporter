@@ -65,6 +65,32 @@ struct AdvancedSettingsView: View {
                         .font(Typography.caption())
                         .foregroundColor(Color.textMuted)
                 }
+                
+                // Format Customization Section
+                Section {
+                    NavigationLink {
+                        FormatCustomizationView(customization: settings.formatCustomization)
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Format Customization")
+                                    .font(Typography.body())
+                                Text(formatCustomizationSummary)
+                                    .font(Typography.caption())
+                                    .foregroundColor(Color.textSecondary)
+                            }
+                            Spacer()
+                        }
+                    }
+                } header: {
+                    Text("Customization")
+                        .font(Typography.caption())
+                        .foregroundColor(Color.textSecondary)
+                } footer: {
+                    Text("Customize date/time formats, units, frontmatter fields, and markdown templates")
+                        .font(Typography.caption())
+                        .foregroundColor(Color.textMuted)
+                }
 
                 // Write Mode Section
                 Section {
@@ -151,6 +177,23 @@ struct AdvancedSettingsView: View {
         case .csv:
             return "Spreadsheet-compatible format. Each data point becomes a row with date, category, metric, and value columns."
         }
+    }
+    
+    private var formatCustomizationSummary: String {
+        let fc = settings.formatCustomization
+        var parts: [String] = []
+        
+        // Date format
+        let dateExample = fc.dateFormat.format(date: Date())
+        parts.append(dateExample)
+        
+        // Unit preference
+        parts.append(fc.unitPreference.rawValue)
+        
+        // Time format indicator
+        parts.append(fc.timeFormat == .hour12 || fc.timeFormat == .hour12WithSeconds ? "12h" : "24h")
+        
+        return parts.joined(separator: " · ")
     }
 
     private var previewText: String {
