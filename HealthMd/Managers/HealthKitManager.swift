@@ -670,75 +670,119 @@ final class HealthKitManager: ObservableObject {
 
         let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endOfDay)
 
-        // Respiratory Rate
+        // Respiratory Rate (daily aggregates)
         if let rrType = HKQuantityType.quantityType(forIdentifier: .respiratoryRate) {
-            let rrDescriptor = HKSampleQueryDescriptor(
-                predicates: [.quantitySample(type: rrType, predicate: predicate)],
-                sortDescriptors: [SortDescriptor(\.endDate, order: .reverse)],
-                limit: 1
+            let rrDescriptor = HKStatisticsQueryDescriptor(
+                predicate: .quantitySample(type: rrType, predicate: predicate),
+                options: [.discreteAverage, .discreteMin, .discreteMax]
             )
-            if let sample = try await rrDescriptor.result(for: healthStore).first {
-                vitalsData.respiratoryRate = sample.quantity.doubleValue(for: HKUnit(from: "count/min"))
+            if let result = try await rrDescriptor.result(for: healthStore) {
+                let unit = HKUnit(from: "count/min")
+                if let avg = result.averageQuantity() {
+                    vitalsData.respiratoryRateAvg = avg.doubleValue(for: unit)
+                }
+                if let min = result.minimumQuantity() {
+                    vitalsData.respiratoryRateMin = min.doubleValue(for: unit)
+                }
+                if let max = result.maximumQuantity() {
+                    vitalsData.respiratoryRateMax = max.doubleValue(for: unit)
+                }
             }
         }
 
-        // Blood Oxygen (SpO2)
+        // Blood Oxygen / SpO2 (daily aggregates)
         if let spo2Type = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation) {
-            let spo2Descriptor = HKSampleQueryDescriptor(
-                predicates: [.quantitySample(type: spo2Type, predicate: predicate)],
-                sortDescriptors: [SortDescriptor(\.endDate, order: .reverse)],
-                limit: 1
+            let spo2Descriptor = HKStatisticsQueryDescriptor(
+                predicate: .quantitySample(type: spo2Type, predicate: predicate),
+                options: [.discreteAverage, .discreteMin, .discreteMax]
             )
-            if let sample = try await spo2Descriptor.result(for: healthStore).first {
-                vitalsData.bloodOxygen = sample.quantity.doubleValue(for: .percent())
+            if let result = try await spo2Descriptor.result(for: healthStore) {
+                if let avg = result.averageQuantity() {
+                    vitalsData.bloodOxygenAvg = avg.doubleValue(for: .percent())
+                }
+                if let min = result.minimumQuantity() {
+                    vitalsData.bloodOxygenMin = min.doubleValue(for: .percent())
+                }
+                if let max = result.maximumQuantity() {
+                    vitalsData.bloodOxygenMax = max.doubleValue(for: .percent())
+                }
             }
         }
 
-        // Body Temperature
+        // Body Temperature (daily aggregates)
         if let tempType = HKQuantityType.quantityType(forIdentifier: .bodyTemperature) {
-            let tempDescriptor = HKSampleQueryDescriptor(
-                predicates: [.quantitySample(type: tempType, predicate: predicate)],
-                sortDescriptors: [SortDescriptor(\.endDate, order: .reverse)],
-                limit: 1
+            let tempDescriptor = HKStatisticsQueryDescriptor(
+                predicate: .quantitySample(type: tempType, predicate: predicate),
+                options: [.discreteAverage, .discreteMin, .discreteMax]
             )
-            if let sample = try await tempDescriptor.result(for: healthStore).first {
-                vitalsData.bodyTemperature = sample.quantity.doubleValue(for: .degreeCelsius())
+            if let result = try await tempDescriptor.result(for: healthStore) {
+                if let avg = result.averageQuantity() {
+                    vitalsData.bodyTemperatureAvg = avg.doubleValue(for: .degreeCelsius())
+                }
+                if let min = result.minimumQuantity() {
+                    vitalsData.bodyTemperatureMin = min.doubleValue(for: .degreeCelsius())
+                }
+                if let max = result.maximumQuantity() {
+                    vitalsData.bodyTemperatureMax = max.doubleValue(for: .degreeCelsius())
+                }
             }
         }
 
-        // Blood Pressure Systolic
+        // Blood Pressure Systolic (daily aggregates)
         if let systolicType = HKQuantityType.quantityType(forIdentifier: .bloodPressureSystolic) {
-            let systolicDescriptor = HKSampleQueryDescriptor(
-                predicates: [.quantitySample(type: systolicType, predicate: predicate)],
-                sortDescriptors: [SortDescriptor(\.endDate, order: .reverse)],
-                limit: 1
+            let systolicDescriptor = HKStatisticsQueryDescriptor(
+                predicate: .quantitySample(type: systolicType, predicate: predicate),
+                options: [.discreteAverage, .discreteMin, .discreteMax]
             )
-            if let sample = try await systolicDescriptor.result(for: healthStore).first {
-                vitalsData.bloodPressureSystolic = sample.quantity.doubleValue(for: .millimeterOfMercury())
+            if let result = try await systolicDescriptor.result(for: healthStore) {
+                if let avg = result.averageQuantity() {
+                    vitalsData.bloodPressureSystolicAvg = avg.doubleValue(for: .millimeterOfMercury())
+                }
+                if let min = result.minimumQuantity() {
+                    vitalsData.bloodPressureSystolicMin = min.doubleValue(for: .millimeterOfMercury())
+                }
+                if let max = result.maximumQuantity() {
+                    vitalsData.bloodPressureSystolicMax = max.doubleValue(for: .millimeterOfMercury())
+                }
             }
         }
 
-        // Blood Pressure Diastolic
+        // Blood Pressure Diastolic (daily aggregates)
         if let diastolicType = HKQuantityType.quantityType(forIdentifier: .bloodPressureDiastolic) {
-            let diastolicDescriptor = HKSampleQueryDescriptor(
-                predicates: [.quantitySample(type: diastolicType, predicate: predicate)],
-                sortDescriptors: [SortDescriptor(\.endDate, order: .reverse)],
-                limit: 1
+            let diastolicDescriptor = HKStatisticsQueryDescriptor(
+                predicate: .quantitySample(type: diastolicType, predicate: predicate),
+                options: [.discreteAverage, .discreteMin, .discreteMax]
             )
-            if let sample = try await diastolicDescriptor.result(for: healthStore).first {
-                vitalsData.bloodPressureDiastolic = sample.quantity.doubleValue(for: .millimeterOfMercury())
+            if let result = try await diastolicDescriptor.result(for: healthStore) {
+                if let avg = result.averageQuantity() {
+                    vitalsData.bloodPressureDiastolicAvg = avg.doubleValue(for: .millimeterOfMercury())
+                }
+                if let min = result.minimumQuantity() {
+                    vitalsData.bloodPressureDiastolicMin = min.doubleValue(for: .millimeterOfMercury())
+                }
+                if let max = result.maximumQuantity() {
+                    vitalsData.bloodPressureDiastolicMax = max.doubleValue(for: .millimeterOfMercury())
+                }
             }
         }
 
-        // Blood Glucose
+        // Blood Glucose (daily aggregates)
         if let glucoseType = HKQuantityType.quantityType(forIdentifier: .bloodGlucose) {
-            let glucoseDescriptor = HKSampleQueryDescriptor(
-                predicates: [.quantitySample(type: glucoseType, predicate: predicate)],
-                sortDescriptors: [SortDescriptor(\.endDate, order: .reverse)],
-                limit: 1
+            let glucoseDescriptor = HKStatisticsQueryDescriptor(
+                predicate: .quantitySample(type: glucoseType, predicate: predicate),
+                options: [.discreteAverage, .discreteMin, .discreteMax]
             )
-            if let sample = try await glucoseDescriptor.result(for: healthStore).first {
-                vitalsData.bloodGlucose = sample.quantity.doubleValue(for: HKUnit(from: "mg/dL"))
+            if let result = try await glucoseDescriptor.result(for: healthStore) {
+                let unit = HKUnit(from: "mg/dL")
+                if let avg = result.averageQuantity() {
+                    vitalsData.bloodGlucoseAvg = avg.doubleValue(for: unit)
+                }
+                if let min = result.minimumQuantity() {
+                    vitalsData.bloodGlucoseMin = min.doubleValue(for: unit)
+                }
+                if let max = result.maximumQuantity() {
+                    vitalsData.bloodGlucoseMax = max.doubleValue(for: unit)
+                }
             }
         }
 

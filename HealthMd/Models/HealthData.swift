@@ -60,18 +60,47 @@ struct HeartData {
 // MARK: - Vitals Data
 
 struct VitalsData {
-    var respiratoryRate: Double?
-    var bloodOxygen: Double? // as percentage
-    var bodyTemperature: Double? // in Celsius
-    var bloodPressureSystolic: Double?
-    var bloodPressureDiastolic: Double?
-    var bloodGlucose: Double? // mg/dL
+    // Respiratory Rate (daily aggregates)
+    var respiratoryRateAvg: Double?
+    var respiratoryRateMin: Double?
+    var respiratoryRateMax: Double?
+    
+    // Blood Oxygen / SpO2 (daily aggregates)
+    var bloodOxygenAvg: Double? // as percentage (0-1)
+    var bloodOxygenMin: Double?
+    var bloodOxygenMax: Double?
+    
+    // Body Temperature (daily aggregates)
+    var bodyTemperatureAvg: Double? // in Celsius
+    var bodyTemperatureMin: Double?
+    var bodyTemperatureMax: Double?
+    
+    // Blood Pressure (daily aggregates)
+    var bloodPressureSystolicAvg: Double?
+    var bloodPressureSystolicMin: Double?
+    var bloodPressureSystolicMax: Double?
+    var bloodPressureDiastolicAvg: Double?
+    var bloodPressureDiastolicMin: Double?
+    var bloodPressureDiastolicMax: Double?
+    
+    // Blood Glucose (daily aggregates)
+    var bloodGlucoseAvg: Double? // mg/dL
+    var bloodGlucoseMin: Double?
+    var bloodGlucoseMax: Double?
 
     var hasData: Bool {
-        respiratoryRate != nil || bloodOxygen != nil ||
-        bodyTemperature != nil || bloodPressureSystolic != nil ||
-        bloodPressureDiastolic != nil || bloodGlucose != nil
+        respiratoryRateAvg != nil || bloodOxygenAvg != nil ||
+        bodyTemperatureAvg != nil || bloodPressureSystolicAvg != nil ||
+        bloodPressureDiastolicAvg != nil || bloodGlucoseAvg != nil
     }
+    
+    // Convenience properties for backward compatibility / simple access
+    var respiratoryRate: Double? { respiratoryRateAvg }
+    var bloodOxygen: Double? { bloodOxygenAvg }
+    var bodyTemperature: Double? { bodyTemperatureAvg }
+    var bloodPressureSystolic: Double? { bloodPressureSystolicAvg }
+    var bloodPressureDiastolic: Double? { bloodPressureDiastolicAvg }
+    var bloodGlucose: Double? { bloodGlucoseAvg }
 }
 
 // MARK: - Body Data
@@ -535,20 +564,52 @@ extension HealthData {
         // Vitals Section
         if vitals.hasData {
             markdown += "\n\(headerPrefix) \(vitalsEmoji)Vitals\n\n"
-            if let rr = vitals.respiratoryRate {
-                markdown += "\(bullet) **Respiratory Rate:** \(String(format: "%.1f", rr)) breaths/min\n"
+            
+            // Respiratory Rate
+            if let rrAvg = vitals.respiratoryRateAvg {
+                var rrStr = "\(bullet) **Respiratory Rate:** \(String(format: "%.1f", rrAvg)) breaths/min"
+                if let rrMin = vitals.respiratoryRateMin, let rrMax = vitals.respiratoryRateMax, rrMin != rrMax {
+                    rrStr += " (range: \(String(format: "%.1f", rrMin))–\(String(format: "%.1f", rrMax)))"
+                }
+                markdown += rrStr + "\n"
             }
-            if let spo2 = vitals.bloodOxygen {
-                markdown += "\(bullet) **SpO2:** \(Int(spo2 * 100))%\n"
+            
+            // Blood Oxygen / SpO2
+            if let spo2Avg = vitals.bloodOxygenAvg {
+                var spo2Str = "\(bullet) **SpO2:** \(Int(spo2Avg * 100))%"
+                if let spo2Min = vitals.bloodOxygenMin, let spo2Max = vitals.bloodOxygenMax, spo2Min != spo2Max {
+                    spo2Str += " (range: \(Int(spo2Min * 100))%–\(Int(spo2Max * 100))%)"
+                }
+                markdown += spo2Str + "\n"
             }
-            if let temp = vitals.bodyTemperature {
-                markdown += "\(bullet) **Body Temperature:** \(converter.formatTemperature(temp))\n"
+            
+            // Body Temperature
+            if let tempAvg = vitals.bodyTemperatureAvg {
+                var tempStr = "\(bullet) **Body Temperature:** \(converter.formatTemperature(tempAvg))"
+                if let tempMin = vitals.bodyTemperatureMin, let tempMax = vitals.bodyTemperatureMax, tempMin != tempMax {
+                    tempStr += " (range: \(converter.formatTemperature(tempMin))–\(converter.formatTemperature(tempMax)))"
+                }
+                markdown += tempStr + "\n"
             }
-            if let systolic = vitals.bloodPressureSystolic, let diastolic = vitals.bloodPressureDiastolic {
-                markdown += "\(bullet) **Blood Pressure:** \(Int(systolic))/\(Int(diastolic)) mmHg\n"
+            
+            // Blood Pressure
+            if let systolicAvg = vitals.bloodPressureSystolicAvg, let diastolicAvg = vitals.bloodPressureDiastolicAvg {
+                var bpStr = "\(bullet) **Blood Pressure:** \(Int(systolicAvg))/\(Int(diastolicAvg)) mmHg"
+                if let sysMin = vitals.bloodPressureSystolicMin, let sysMax = vitals.bloodPressureSystolicMax,
+                   let diaMin = vitals.bloodPressureDiastolicMin, let diaMax = vitals.bloodPressureDiastolicMax,
+                   (sysMin != sysMax || diaMin != diaMax) {
+                    bpStr += " (range: \(Int(sysMin))/\(Int(diaMin))–\(Int(sysMax))/\(Int(diaMax)))"
+                }
+                markdown += bpStr + "\n"
             }
-            if let glucose = vitals.bloodGlucose {
-                markdown += "\(bullet) **Blood Glucose:** \(String(format: "%.1f", glucose)) mg/dL\n"
+            
+            // Blood Glucose
+            if let glucoseAvg = vitals.bloodGlucoseAvg {
+                var glucoseStr = "\(bullet) **Blood Glucose:** \(String(format: "%.1f", glucoseAvg)) mg/dL"
+                if let glucoseMin = vitals.bloodGlucoseMin, let glucoseMax = vitals.bloodGlucoseMax, glucoseMin != glucoseMax {
+                    glucoseStr += " (range: \(String(format: "%.1f", glucoseMin))–\(String(format: "%.1f", glucoseMax)))"
+                }
+                markdown += glucoseStr + "\n"
             }
         }
 
@@ -887,28 +948,85 @@ extension HealthData {
             json["heart"] = heartDict
         }
 
-        // Vitals
+        // Vitals (daily aggregates)
         if vitals.hasData {
             var vitalsDict: [String: Any] = [:]
-            if let rr = vitals.respiratoryRate {
-                vitalsDict["respiratoryRate"] = rr
+            
+            // Respiratory Rate
+            if let rrAvg = vitals.respiratoryRateAvg {
+                vitalsDict["respiratoryRateAvg"] = rrAvg
+                vitalsDict["respiratoryRate"] = rrAvg // backward compatibility
             }
-            if let spo2 = vitals.bloodOxygen {
-                vitalsDict["bloodOxygen"] = spo2
-                vitalsDict["bloodOxygenPercent"] = spo2 * 100
+            if let rrMin = vitals.respiratoryRateMin {
+                vitalsDict["respiratoryRateMin"] = rrMin
             }
-            if let temp = vitals.bodyTemperature {
-                vitalsDict["bodyTemperature"] = temp
+            if let rrMax = vitals.respiratoryRateMax {
+                vitalsDict["respiratoryRateMax"] = rrMax
             }
-            if let systolic = vitals.bloodPressureSystolic {
-                vitalsDict["bloodPressureSystolic"] = systolic
+            
+            // Blood Oxygen / SpO2
+            if let spo2Avg = vitals.bloodOxygenAvg {
+                vitalsDict["bloodOxygenAvg"] = spo2Avg
+                vitalsDict["bloodOxygen"] = spo2Avg // backward compatibility
+                vitalsDict["bloodOxygenPercent"] = spo2Avg * 100
             }
-            if let diastolic = vitals.bloodPressureDiastolic {
-                vitalsDict["bloodPressureDiastolic"] = diastolic
+            if let spo2Min = vitals.bloodOxygenMin {
+                vitalsDict["bloodOxygenMin"] = spo2Min
+                vitalsDict["bloodOxygenMinPercent"] = spo2Min * 100
             }
-            if let glucose = vitals.bloodGlucose {
-                vitalsDict["bloodGlucose"] = glucose
+            if let spo2Max = vitals.bloodOxygenMax {
+                vitalsDict["bloodOxygenMax"] = spo2Max
+                vitalsDict["bloodOxygenMaxPercent"] = spo2Max * 100
             }
+            
+            // Body Temperature
+            if let tempAvg = vitals.bodyTemperatureAvg {
+                vitalsDict["bodyTemperatureAvg"] = tempAvg
+                vitalsDict["bodyTemperature"] = tempAvg // backward compatibility
+            }
+            if let tempMin = vitals.bodyTemperatureMin {
+                vitalsDict["bodyTemperatureMin"] = tempMin
+            }
+            if let tempMax = vitals.bodyTemperatureMax {
+                vitalsDict["bodyTemperatureMax"] = tempMax
+            }
+            
+            // Blood Pressure Systolic
+            if let systolicAvg = vitals.bloodPressureSystolicAvg {
+                vitalsDict["bloodPressureSystolicAvg"] = systolicAvg
+                vitalsDict["bloodPressureSystolic"] = systolicAvg // backward compatibility
+            }
+            if let systolicMin = vitals.bloodPressureSystolicMin {
+                vitalsDict["bloodPressureSystolicMin"] = systolicMin
+            }
+            if let systolicMax = vitals.bloodPressureSystolicMax {
+                vitalsDict["bloodPressureSystolicMax"] = systolicMax
+            }
+            
+            // Blood Pressure Diastolic
+            if let diastolicAvg = vitals.bloodPressureDiastolicAvg {
+                vitalsDict["bloodPressureDiastolicAvg"] = diastolicAvg
+                vitalsDict["bloodPressureDiastolic"] = diastolicAvg // backward compatibility
+            }
+            if let diastolicMin = vitals.bloodPressureDiastolicMin {
+                vitalsDict["bloodPressureDiastolicMin"] = diastolicMin
+            }
+            if let diastolicMax = vitals.bloodPressureDiastolicMax {
+                vitalsDict["bloodPressureDiastolicMax"] = diastolicMax
+            }
+            
+            // Blood Glucose
+            if let glucoseAvg = vitals.bloodGlucoseAvg {
+                vitalsDict["bloodGlucoseAvg"] = glucoseAvg
+                vitalsDict["bloodGlucose"] = glucoseAvg // backward compatibility
+            }
+            if let glucoseMin = vitals.bloodGlucoseMin {
+                vitalsDict["bloodGlucoseMin"] = glucoseMin
+            }
+            if let glucoseMax = vitals.bloodGlucoseMax {
+                vitalsDict["bloodGlucoseMax"] = glucoseMax
+            }
+            
             json["vitals"] = vitalsDict
         }
 
@@ -1202,26 +1320,75 @@ extension HealthData {
             }
         }
 
-        // Vitals
+        // Vitals (daily aggregates)
         if vitals.hasData {
-            if let rr = vitals.respiratoryRate {
-                csv += "\(dateString),Vitals,Respiratory Rate,\(rr),breaths/min\n"
+            // Respiratory Rate
+            if let rrAvg = vitals.respiratoryRateAvg {
+                csv += "\(dateString),Vitals,Respiratory Rate Avg,\(rrAvg),breaths/min\n"
             }
-            if let spo2 = vitals.bloodOxygen {
-                csv += "\(dateString),Vitals,Blood Oxygen,\(spo2 * 100),percent\n"
+            if let rrMin = vitals.respiratoryRateMin {
+                csv += "\(dateString),Vitals,Respiratory Rate Min,\(rrMin),breaths/min\n"
             }
-            if let temp = vitals.bodyTemperature {
-                let convertedTemp = converter.convertTemperature(temp)
-                csv += "\(dateString),Vitals,Body Temperature,\(String(format: "%.1f", convertedTemp)),\(tempUnit)\n"
+            if let rrMax = vitals.respiratoryRateMax {
+                csv += "\(dateString),Vitals,Respiratory Rate Max,\(rrMax),breaths/min\n"
             }
-            if let systolic = vitals.bloodPressureSystolic {
-                csv += "\(dateString),Vitals,Blood Pressure Systolic,\(systolic),mmHg\n"
+            
+            // Blood Oxygen / SpO2
+            if let spo2Avg = vitals.bloodOxygenAvg {
+                csv += "\(dateString),Vitals,Blood Oxygen Avg,\(spo2Avg * 100),percent\n"
             }
-            if let diastolic = vitals.bloodPressureDiastolic {
-                csv += "\(dateString),Vitals,Blood Pressure Diastolic,\(diastolic),mmHg\n"
+            if let spo2Min = vitals.bloodOxygenMin {
+                csv += "\(dateString),Vitals,Blood Oxygen Min,\(spo2Min * 100),percent\n"
             }
-            if let glucose = vitals.bloodGlucose {
-                csv += "\(dateString),Vitals,Blood Glucose,\(glucose),mg/dL\n"
+            if let spo2Max = vitals.bloodOxygenMax {
+                csv += "\(dateString),Vitals,Blood Oxygen Max,\(spo2Max * 100),percent\n"
+            }
+            
+            // Body Temperature
+            if let tempAvg = vitals.bodyTemperatureAvg {
+                let convertedTemp = converter.convertTemperature(tempAvg)
+                csv += "\(dateString),Vitals,Body Temperature Avg,\(String(format: "%.1f", convertedTemp)),\(tempUnit)\n"
+            }
+            if let tempMin = vitals.bodyTemperatureMin {
+                let convertedTemp = converter.convertTemperature(tempMin)
+                csv += "\(dateString),Vitals,Body Temperature Min,\(String(format: "%.1f", convertedTemp)),\(tempUnit)\n"
+            }
+            if let tempMax = vitals.bodyTemperatureMax {
+                let convertedTemp = converter.convertTemperature(tempMax)
+                csv += "\(dateString),Vitals,Body Temperature Max,\(String(format: "%.1f", convertedTemp)),\(tempUnit)\n"
+            }
+            
+            // Blood Pressure Systolic
+            if let systolicAvg = vitals.bloodPressureSystolicAvg {
+                csv += "\(dateString),Vitals,Blood Pressure Systolic Avg,\(systolicAvg),mmHg\n"
+            }
+            if let systolicMin = vitals.bloodPressureSystolicMin {
+                csv += "\(dateString),Vitals,Blood Pressure Systolic Min,\(systolicMin),mmHg\n"
+            }
+            if let systolicMax = vitals.bloodPressureSystolicMax {
+                csv += "\(dateString),Vitals,Blood Pressure Systolic Max,\(systolicMax),mmHg\n"
+            }
+            
+            // Blood Pressure Diastolic
+            if let diastolicAvg = vitals.bloodPressureDiastolicAvg {
+                csv += "\(dateString),Vitals,Blood Pressure Diastolic Avg,\(diastolicAvg),mmHg\n"
+            }
+            if let diastolicMin = vitals.bloodPressureDiastolicMin {
+                csv += "\(dateString),Vitals,Blood Pressure Diastolic Min,\(diastolicMin),mmHg\n"
+            }
+            if let diastolicMax = vitals.bloodPressureDiastolicMax {
+                csv += "\(dateString),Vitals,Blood Pressure Diastolic Max,\(diastolicMax),mmHg\n"
+            }
+            
+            // Blood Glucose
+            if let glucoseAvg = vitals.bloodGlucoseAvg {
+                csv += "\(dateString),Vitals,Blood Glucose Avg,\(glucoseAvg),mg/dL\n"
+            }
+            if let glucoseMin = vitals.bloodGlucoseMin {
+                csv += "\(dateString),Vitals,Blood Glucose Min,\(glucoseMin),mg/dL\n"
+            }
+            if let glucoseMax = vitals.bloodGlucoseMax {
+                csv += "\(dateString),Vitals,Blood Glucose Max,\(glucoseMax),mg/dL\n"
             }
         }
 
@@ -1501,26 +1668,81 @@ extension HealthData {
             }
         }
 
-        // Vitals metrics
+        // Vitals metrics (daily aggregates)
         if vitals.hasData {
-            if let rr = vitals.respiratoryRate {
-                addField("respiratory_rate", String(format: "%.1f", rr))
+            // Respiratory Rate
+            if let rrAvg = vitals.respiratoryRateAvg {
+                addField("respiratory_rate", String(format: "%.1f", rrAvg))
+                addField("respiratory_rate_avg", String(format: "%.1f", rrAvg))
             }
-            if let spo2 = vitals.bloodOxygen {
-                addField("blood_oxygen", "\(Int(spo2 * 100))")
+            if let rrMin = vitals.respiratoryRateMin {
+                addField("respiratory_rate_min", String(format: "%.1f", rrMin))
             }
-            if let temp = vitals.bodyTemperature {
-                let converted = converter.convertTemperature(temp)
+            if let rrMax = vitals.respiratoryRateMax {
+                addField("respiratory_rate_max", String(format: "%.1f", rrMax))
+            }
+            
+            // Blood Oxygen / SpO2
+            if let spo2Avg = vitals.bloodOxygenAvg {
+                addField("blood_oxygen", "\(Int(spo2Avg * 100))")
+                addField("blood_oxygen_avg", "\(Int(spo2Avg * 100))")
+            }
+            if let spo2Min = vitals.bloodOxygenMin {
+                addField("blood_oxygen_min", "\(Int(spo2Min * 100))")
+            }
+            if let spo2Max = vitals.bloodOxygenMax {
+                addField("blood_oxygen_max", "\(Int(spo2Max * 100))")
+            }
+            
+            // Body Temperature
+            if let tempAvg = vitals.bodyTemperatureAvg {
+                let converted = converter.convertTemperature(tempAvg)
                 addField("body_temperature", String(format: "%.1f", converted))
+                addField("body_temperature_avg", String(format: "%.1f", converted))
             }
-            if let systolic = vitals.bloodPressureSystolic {
-                addField("blood_pressure_systolic", "\(Int(systolic))")
+            if let tempMin = vitals.bodyTemperatureMin {
+                let converted = converter.convertTemperature(tempMin)
+                addField("body_temperature_min", String(format: "%.1f", converted))
             }
-            if let diastolic = vitals.bloodPressureDiastolic {
-                addField("blood_pressure_diastolic", "\(Int(diastolic))")
+            if let tempMax = vitals.bodyTemperatureMax {
+                let converted = converter.convertTemperature(tempMax)
+                addField("body_temperature_max", String(format: "%.1f", converted))
             }
-            if let glucose = vitals.bloodGlucose {
-                addField("blood_glucose", String(format: "%.1f", glucose))
+            
+            // Blood Pressure Systolic
+            if let systolicAvg = vitals.bloodPressureSystolicAvg {
+                addField("blood_pressure_systolic", "\(Int(systolicAvg))")
+                addField("blood_pressure_systolic_avg", "\(Int(systolicAvg))")
+            }
+            if let systolicMin = vitals.bloodPressureSystolicMin {
+                addField("blood_pressure_systolic_min", "\(Int(systolicMin))")
+            }
+            if let systolicMax = vitals.bloodPressureSystolicMax {
+                addField("blood_pressure_systolic_max", "\(Int(systolicMax))")
+            }
+            
+            // Blood Pressure Diastolic
+            if let diastolicAvg = vitals.bloodPressureDiastolicAvg {
+                addField("blood_pressure_diastolic", "\(Int(diastolicAvg))")
+                addField("blood_pressure_diastolic_avg", "\(Int(diastolicAvg))")
+            }
+            if let diastolicMin = vitals.bloodPressureDiastolicMin {
+                addField("blood_pressure_diastolic_min", "\(Int(diastolicMin))")
+            }
+            if let diastolicMax = vitals.bloodPressureDiastolicMax {
+                addField("blood_pressure_diastolic_max", "\(Int(diastolicMax))")
+            }
+            
+            // Blood Glucose
+            if let glucoseAvg = vitals.bloodGlucoseAvg {
+                addField("blood_glucose", String(format: "%.1f", glucoseAvg))
+                addField("blood_glucose_avg", String(format: "%.1f", glucoseAvg))
+            }
+            if let glucoseMin = vitals.bloodGlucoseMin {
+                addField("blood_glucose_min", String(format: "%.1f", glucoseMin))
+            }
+            if let glucoseMax = vitals.bloodGlucoseMax {
+                addField("blood_glucose_max", String(format: "%.1f", glucoseMax))
             }
         }
 
